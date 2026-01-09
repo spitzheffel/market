@@ -1,29 +1,86 @@
 <template>
   <section class="card p-5 flex flex-col gap-4">
-    <div class="panel-header flex items-center justify-between gap-4">
-      <div>
-        <h2>策略实验室</h2>
-        <div class="panel-sub">模板与回测入口。</div>
-      </div>
-      <div class="flex gap-2">
-        <button class="button-ghost">新建模板</button>
-        <button class="button">运行回测</button>
-      </div>
+    <CardHeader title="策略实验室" subtitle="模板与回测入口。">
+      <template #actions>
+        <div class="flex gap-2">
+          <button class="button-ghost">新建模板</button>
+          <button class="button">运行回测</button>
+        </div>
+      </template>
+    </CardHeader>
+
+    <!-- Loading state -->
+    <div v-if="loading" class="grid gap-3 md:grid-cols-3">
+      <Skeleton v-for="i in 3" :key="i" variant="card" height="120px" />
     </div>
-    <div class="grid gap-3 md:grid-cols-3">
-      <div v-for="tpl in strategyTemplates" :key="tpl.name" class="mini-card p-3">
-        <div class="panel-sub">{{ tpl.levels }}</div>
-        <strong class="mono">{{ tpl.name }}</strong>
-        <div class="panel-sub">胜率 {{ tpl.winRate }} | 评级 {{ tpl.rating }}</div>
+
+    <!-- Empty state -->
+    <EmptyState
+      v-else-if="!strategyTemplates.length"
+      title="暂无策略模板"
+      description="创建您的第一个策略模板开始回测"
+    >
+      <template #action>
+        <button class="button">新建模板</button>
+      </template>
+    </EmptyState>
+
+    <!-- Strategy templates -->
+    <CardSection v-else title="策略模板" layout="grid-3" gap="md">
+      <div v-for="tpl in strategyTemplates" :key="tpl.name" class="mini-card p-4 flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-muted uppercase tracking-wide">{{ tpl.levels }}</span>
+          <StatusTag
+            :variant="getRatingVariant(tpl.rating)"
+            :label="tpl.rating"
+            size="sm"
+          />
+        </div>
+        <strong class="mono text-base">{{ tpl.name }}</strong>
+        <div class="flex items-center gap-4 mt-1">
+          <div class="flex flex-col">
+            <span class="text-xs text-muted">胜率</span>
+            <span class="mono text-sm" :class="parseFloat(tpl.winRate) >= 55 ? 'text-success' : ''">{{ tpl.winRate }}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xs text-muted">评级</span>
+            <span class="mono text-sm">{{ tpl.rating }}</span>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button class="button-ghost text-xs py-1.5 px-3">编辑</button>
+          <button class="button text-xs py-1.5 px-3">回测</button>
+        </div>
       </div>
-    </div>
+    </CardSection>
   </section>
 </template>
 
 <script setup>
-const strategyTemplates = [
+import { ref, onMounted } from 'vue';
+import CardHeader from '../components/common/CardHeader.vue';
+import CardSection from '../components/common/CardSection.vue';
+import StatusTag from '../components/common/StatusTag.vue';
+import Skeleton from '../components/common/Skeleton.vue';
+import EmptyState from '../components/common/EmptyState.vue';
+
+const loading = ref(true);
+
+const strategyTemplates = ref([
   { name: '多级别共振', levels: '1m/5m/15m', winRate: '54%', rating: 'A-' },
   { name: '背驰反转', levels: '5m/15m', winRate: '51%', rating: 'B+' },
   { name: '趋势延伸', levels: '15m/1h', winRate: '56%', rating: 'A' },
-];
+]);
+
+const getRatingVariant = (rating) => {
+  if (rating.startsWith('A')) return 'success';
+  if (rating.startsWith('B')) return 'warning';
+  return 'neutral';
+};
+
+// Simulate data loading
+onMounted(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 850));
+  loading.value = false;
+});
 </script>

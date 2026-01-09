@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"D:\\\\Project\\\\market\\\\frontend\\\\src\\\\components\\\\common\"\" 2>/dev/null || dir \"D:Projectmarketfrontendsrccomponentscommon\" 2>nul || echo \"Directory does not exist \")",
+      "Bash(grep:*)",
+      "Bash(claude config:*)",
+      "mcp__mcp_router__sequentialthinking",
+      "Bash(npm install:*)",
+      "Bash(npm run build)"
+    ]
+  },
+  "mcpServers": {
+    "mcp-router": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mcp_router/cli@latest",
+        "connect"
+      ],
+      "env": {
+        "MCPR_TOKEN": "mcpr_Gq4CPkCMkxg3KCVGeDV13YiJ_2OmDQ_N"
+      }
+    }
+  }
+}

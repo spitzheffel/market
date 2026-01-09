@@ -1,18 +1,14 @@
 <template>
   <section class="chart-card card flex flex-col gap-4 p-5">
-    <div class="panel-header flex items-center justify-between gap-4">
-      <div>
-        <h2>结构叠加</h2>
-        <div class="panel-sub">笔、线段、中枢、背驰映射。</div>
-      </div>
-      <div class="panel-actions flex gap-2">
+    <CardHeader title="结构叠加" subtitle="笔、线段、中枢、背驰映射。">
+      <template #actions>
         <button class="button-ghost">叠加：开启</button>
         <button class="button-ghost">自动缩放</button>
-      </div>
-    </div>
+      </template>
+    </CardHeader>
     <div class="chart-shell grid grid-rows-[1fr_auto] gap-3 p-4">
-      <div class="chart-grid grid grid-cols-1 xl:grid-cols-[1fr_200px] gap-4">
-        <div class="chart-visual rounded-xl border border-[rgba(148,163,184,0.25)] relative overflow-hidden p-3.5">
+      <div class="chart-grid grid grid-cols-1 lg:grid-cols-[1fr_200px] gap-4">
+        <div class="chart-visual rounded-xl border border-[rgba(148,163,184,0.25)] relative overflow-hidden p-3.5" style="height: min(320px, 60vh);">
           <svg viewBox="0 0 600 280" preserveAspectRatio="none" aria-hidden="true">
             <rect x="0" y="0" width="600" height="280" fill="none" />
             <path
@@ -43,14 +39,17 @@
           </svg>
         </div>
         <div class="chart-side flex flex-col gap-3">
-          <div v-for="stat in miniStats" :key="stat.label" class="mini-card p-3">
-            {{ stat.label }}
-            <strong class="mono">{{ stat.value }}</strong>
-            <div class="panel-sub">{{ stat.note }}</div>
-          </div>
+          <KpiStat
+            v-for="stat in miniStats"
+            :key="stat.label"
+            :label="stat.label"
+            :value="stat.value"
+            :note="stat.note"
+            :tone="stat.tone"
+          />
         </div>
       </div>
-      <div class="chart-legend flex flex-wrap gap-3 text-sm text-muted">
+      <div class="chart-legend grid grid-cols-2 sm:flex sm:flex-wrap gap-3 text-sm text-muted">
         <span><span class="legend-dot" style="background: #60a5fa"></span>价格</span>
         <span><span class="legend-dot" style="background: #22d3ee"></span>线段</span>
         <span><span class="legend-dot" style="background: #f59e0b"></span>中枢</span>
@@ -65,57 +64,61 @@
   </section>
 
   <section class="levels-row grid gap-4 xl:grid-cols-[1.2fr_1fr]">
-    <div class="levels-card card flex flex-col gap-3 p-4">
-      <div class="panel-header flex items-center justify-between gap-4">
-        <div>
-          <h2>多级别快照</h2>
-          <div class="panel-sub">1m / 5m / 15m 多周期联动</div>
-        </div>
-        <button class="button-ghost">锁定联动</button>
-      </div>
+    <div class="levels-card card flex flex-col gap-4 p-5">
+      <CardHeader title="多级别快照" subtitle="1m / 5m / 15m 多周期联动">
+        <template #actions>
+          <button class="button-ghost">锁定联动</button>
+        </template>
+      </CardHeader>
       <div class="level-grid grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div v-for="level in levels" :key="level.level" class="level-item">
-          <h4>{{ level.level }}</h4>
-          <strong>{{ level.title }}</strong>
-          <div class="panel-sub">{{ level.note }}</div>
-        </div>
+        <KpiStat
+          v-for="level in levels"
+          :key="level.level"
+          :label="level.level"
+          :value="level.title"
+          :note="level.note"
+        />
       </div>
       <div class="panel-sub">共识：买方区间形成（弱）。</div>
     </div>
-    <div class="watch-card card flex flex-col gap-3 p-4">
-      <div class="panel-header flex items-center justify-between gap-4">
-        <div>
-          <h2>自选池</h2>
-          <div class="panel-sub">自动扫描缠论信号</div>
-        </div>
-        <button class="button-ghost">编辑</button>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>交易对</th>
-            <th>最新价</th>
-            <th>信号</th>
-            <th>偏向</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div class="watch-card card flex flex-col gap-4 p-5">
+      <CardHeader title="自选池" subtitle="自动扫描缠论信号">
+        <template #actions>
+          <button class="button-ghost">编辑</button>
+        </template>
+      </CardHeader>
+      <DataTable :loading="loading" :column-count="4" :empty="!watchlist.length" empty-text="暂无自选标的">
+        <template #header>
+          <th>交易对</th>
+          <th class="numeric">最新价</th>
+          <th>信号</th>
+          <th class="numeric">偏向</th>
+        </template>
+        <template #body>
           <tr v-for="row in watchlist" :key="row.pair">
             <td>{{ row.pair }}</td>
-            <td class="mono">{{ row.last }}</td>
-            <td><span :class="['tag', row.signal]">{{ row.signalLabel }}</span></td>
-            <td class="mono">{{ row.bias }}</td>
+            <td class="numeric mono">{{ row.last }}</td>
+            <td><StatusTag :variant="row.signal" :label="row.signalLabel" /></td>
+            <td :class="['numeric', 'mono', row.bias.startsWith('-') ? 'text-danger' : 'text-success']">{{ row.bias }}</td>
           </tr>
-        </tbody>
-      </table>
+        </template>
+      </DataTable>
     </div>
   </section>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
+import CardHeader from '../../components/common/CardHeader.vue';
+import KpiStat from '../../components/common/KpiStat.vue';
+import StatusTag from '../../components/common/StatusTag.vue';
+import DataTable from '../../components/common/DataTable.vue';
+
+const loading = ref(true);
+
 const miniStats = [
-  { label: '突破力度', value: '0.78', note: '线段 3 对比 1' },
-  { label: '背驰指数', value: '+12.4', note: '动能减弱' },
+  { label: '突破力度', value: '0.78', note: '线段 3 对比 1', tone: 'up' },
+  { label: '背驰指数', value: '+12.4', note: '动能减弱', tone: 'warn' },
   { label: '中枢同步', value: '3 / 4', note: '多级别对齐' },
 ];
 
@@ -138,4 +141,10 @@ const watchlist = [
   { pair: 'BNB/USDT', last: '612.4', signal: 'sell', signalLabel: '卖', bias: '-0.9%' },
   { pair: 'ARB/USDT', last: '1.16', signal: 'wait', signalLabel: '观望', bias: '+0.1%' },
 ];
+
+// Simulate data loading
+onMounted(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  loading.value = false;
+});
 </script>

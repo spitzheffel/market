@@ -215,6 +215,7 @@
 .chan-app .button-ghost:hover,
 .chan-app .select-pill:hover {
   border-color: rgba(148, 163, 184, 0.5);
+  background: rgba(30, 41, 59, 0.5);
 }
 
 .chan-app .main {
@@ -299,34 +300,7 @@
   margin-top: 8px;
 }
 
-.chan-app .tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid transparent;
-}
-
-.chan-app .tag.buy {
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--success);
-  border-color: rgba(34, 197, 94, 0.4);
-}
-
-.chan-app .tag.sell {
-  background: rgba(244, 63, 94, 0.15);
-  color: var(--danger);
-  border-color: rgba(244, 63, 94, 0.4);
-}
-
-.chan-app .tag.wait {
-  background: rgba(250, 204, 21, 0.16);
-  color: #facc15;
-  border-color: rgba(250, 204, 21, 0.4);
-}
+/* Legacy .tag classes removed - use StatusTag component instead */
 
 .chan-app table {
   width: 100%;
@@ -352,9 +326,6 @@
   font-family: var(--font-mono);
 }
 
-.chan-app .right {
-}
-
 .chan-app .signal-card,
 .chan-app .risk-card,
 .chan-app .session-card {
@@ -363,12 +334,15 @@
 .chan-app .signal-item {
   border: 1px solid var(--line);
   background: rgba(15, 23, 42, 0.65);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .chan-app .signal-item:hover {
   border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(30, 41, 59, 0.5);
+  transform: translateY(-1px);
 }
 
 .chan-app .signal-title {
@@ -438,8 +412,216 @@
   border-color: rgba(148, 163, 184, 0.22);
 }
 
+/* ========================================
+   Unified Interactive States
+   ======================================== */
+
+/* Base transition for all interactive elements */
+.chan-app .button,
+.chan-app .button-ghost,
+.chan-app .select-pill,
+.chan-app .nav-item,
+.chan-app .mini-card,
+.chan-app .level-item,
+.chan-app .signal-item,
+.chan-app .param {
+  transition: all 0.2s ease;
+}
+
+/* Unified active (pressed) state */
+.chan-app .button:active,
+.chan-app .button-ghost:active,
+.chan-app .select-pill:active,
+.chan-app .nav-item:active {
+  transform: scale(0.98);
+}
+
+/* Unified disabled state */
+.chan-app .button:disabled,
+.chan-app .button-ghost:disabled,
+.chan-app .select-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Unified focus-visible state for accessibility */
+.chan-app .button:focus-visible,
+.chan-app .button-ghost:focus-visible,
+.chan-app .select-pill:focus-visible,
+.chan-app .nav-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* select-pill active state (when selected) */
+.chan-app .select-pill.active,
+.chan-app .select-pill--active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.6);
+  font-weight: 600;
+}
+
+.chan-app .select-pill.active:hover,
+.chan-app .select-pill--active:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+/* ========================================
+   Card & Item Hover States
+   ======================================== */
+
+.chan-app .mini-card {
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.chan-app .mini-card:hover {
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.chan-app .level-item {
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chan-app .level-item:hover {
+  border-color: rgba(148, 163, 184, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chan-app .param {
+  transition: border-color 0.2s ease;
+}
+
+.chan-app .param:hover {
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+/* ========================================
+   Right Column Cards - padding now via Tailwind (p-5 gap-4)
+   ======================================== */
+
+/* ========================================
+   Table Enhancements
+   ======================================== */
+
+/* Row hover highlight */
+.chan-app tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.chan-app tbody tr:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* Numeric columns right-aligned */
+.chan-app th.numeric,
+.chan-app td.numeric {
+  text-align: right;
+}
+
+/* Mono font for data values */
+.chan-app td.mono,
+.chan-app .data-value {
+  font-family: var(--font-mono);
+}
+
+/* ========================================
+   Responsive Table Columns
+   ======================================== */
+
+@media (max-width: 768px) {
+  .chan-app .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .chan-app .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   Mobile Responsive Optimizations
+   ======================================== */
+
+/* FilterPill - smaller on mobile */
+@media (max-width: 640px) {
+  .chan-app .select-pill,
+  .chan-app .button-ghost {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  /* Reduce card padding on mobile */
+  .chan-app .card {
+    padding: 1rem !important;
+  }
+
+  /* Chart visual responsive height */
+  .chan-app .chart-visual {
+    min-height: 200px;
+  }
+}
+
+/* Right column cards - reduce padding on mobile */
+@media (max-width: 768px) {
+  .chan-app .right .card {
+    padding: 1rem !important;
+  }
+
+  /* Adjust spacing for better mobile experience */
+  .chan-app .app {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .chan-app .sidebar {
+    width: 220px;
+  }
+}
+
+/* Mobile touch interactions - active state feedback */
+@media (hover: none) and (pointer: coarse) {
+  .chan-app .button:active,
+  .chan-app .button-ghost:active,
+  .chan-app .select-pill:active,
+  .chan-app .nav-item:active {
+    transform: scale(0.97);
+    background: rgba(59, 130, 246, 0.15);
+  }
+
+  .chan-app .signal-item:active,
+  .chan-app .mini-card:active,
+  .chan-app .level-item:active {
+    transform: translateY(0);
+    background: rgba(59, 130, 246, 0.08);
+  }
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
 .text-muted {
   color: var(--muted);
+}
+
+.text-success {
+  color: var(--success);
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+.text-warning {
+  color: var(--warning);
 }
 
 .chan-app .mono {
