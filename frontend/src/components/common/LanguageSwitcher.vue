@@ -40,7 +40,7 @@ const { locale, setLocale, availableLocales } = useI18n();
 
 .lang-button:hover {
   background: rgba(148, 163, 184, 0.1);
-  color: var(--text);
+  color: var(--ink);
 }
 
 .lang-button.active {

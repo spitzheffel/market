@@ -1,5 +1,5 @@
 <template>
-  <div ref="containerRef" class="virtual-list" :style="{ height: height }">
+  <div ref="containerRef" class="virtual-list" :style="containerStyle">
     <div class="virtual-list__spacer" :style="{ height: `${totalHeight}px` }">
       <div
         class="virtual-list__content"
@@ -24,11 +24,17 @@ const props = defineProps({
   itemHeight: { type: Number, default: 100 }, // 预估每个卡片高度
   buffer: { type: Number, default: 3 }, // 上下缓冲区项目数
   height: { type: String, default: '100%' },
+  minHeight: { type: String, default: '200px' }, // 最小高度，防止负值
   itemKey: { type: [String, Function], default: 'id' },
 });
 
 const containerRef = ref(null);
 const scrollTop = ref(0);
+
+// 容器样式，使用 max() 确保不会变成负值
+const containerStyle = computed(() => ({
+  height: `max(${props.minHeight}, ${props.height})`,
+}));
 
 // 计算总高度
 const totalHeight = computed(() => props.items.length * props.itemHeight);

@@ -1,8 +1,8 @@
 <template>
   <section class="card p-5 flex flex-col gap-4">
-    <CardHeader title="设置" subtitle="偏好、风控、账户绑定。">
+    <CardHeader :title="t('settings.title')" :subtitle="t('settings.subtitle')">
       <template #actions>
-        <button class="button">保存设置</button>
+        <button class="button">{{ t('settings.saveSettings') }}</button>
       </template>
     </CardHeader>
 
@@ -12,27 +12,27 @@
 
     <div v-else class="grid gap-3 md:grid-cols-2">
       <div class="mini-card p-4">
-        <div class="panel-sub">主题</div>
+        <div class="panel-sub">{{ t('settings.theme') }}</div>
         <div class="flex gap-2 mt-2">
-          <button class="button">暗色</button>
-          <button class="button-ghost">浅色</button>
+          <button class="button">{{ t('settings.darkMode') }}</button>
+          <button class="button-ghost">{{ t('settings.lightMode') }}</button>
         </div>
       </div>
       <div class="mini-card p-4">
-        <div class="panel-sub">风控</div>
-        <div class="mono text-lg mt-1">单标的回撤 3%</div>
-        <div class="panel-sub">超限自动降权</div>
+        <div class="panel-sub">{{ t('settings.riskControl') }}</div>
+        <div class="mono text-lg mt-1">{{ t('settings.drawdownLimit') }} 3%</div>
+        <div class="panel-sub">{{ t('settings.autoReduceWeight') }}</div>
       </div>
       <div class="mini-card p-4">
-        <div class="panel-sub">账户绑定</div>
-        <div class="mono mt-1">Binance API · 已连接</div>
+        <div class="panel-sub">{{ t('settings.accountBinding') }}</div>
+        <div class="mono mt-1">Binance API · {{ t('settings.connected') }}</div>
         <div class="panel-sub">Key ****ABCD</div>
       </div>
       <div class="mini-card p-4">
-        <div class="panel-sub">通知方式</div>
+        <div class="panel-sub">{{ t('settings.notifications') }}</div>
         <div class="flex gap-2 mt-2">
-          <button class="select-pill">邮件</button>
-          <button class="select-pill">Webhook</button>
+          <button class="select-pill">{{ t('settings.email') }}</button>
+          <button class="select-pill">{{ t('settings.webhook') }}</button>
         </div>
       </div>
     </div>
@@ -41,8 +41,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import Skeleton from '../components/common/Skeleton.vue';
+
+const { t } = useI18n();
 
 const loading = ref(true);
 

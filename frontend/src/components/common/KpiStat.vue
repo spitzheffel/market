@@ -11,7 +11,7 @@
     <!-- Empty state -->
     <template v-else-if="empty">
       <strong class="mono leading-tight text-muted" :class="valueSizeClass">--</strong>
-      <span v-if="emptyText" class="panel-sub">{{ emptyText }}</span>
+      <span v-if="resolvedEmptyText" class="panel-sub">{{ resolvedEmptyText }}</span>
     </template>
 
     <!-- Normal state -->
@@ -26,6 +26,9 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from '../../composables/useI18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   label: { type: String, required: true },
@@ -35,8 +38,10 @@ const props = defineProps({
   dense: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   empty: { type: Boolean, default: false },
-  emptyText: { type: String, default: '暂无数据' },
+  emptyText: { type: String, default: '' },
 });
+
+const resolvedEmptyText = computed(() => props.emptyText || t('common.empty'));
 
 const toneClass = computed(() => {
   switch (props.tone) {

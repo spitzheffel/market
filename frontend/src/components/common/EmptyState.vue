@@ -9,7 +9,7 @@
       </slot>
     </div>
     <div class="empty-state__content">
-      <h4 v-if="title" class="empty-state__title">{{ title }}</h4>
+      <h4 v-if="resolvedTitle" class="empty-state__title">{{ resolvedTitle }}</h4>
       <p v-if="description" class="empty-state__description">{{ description }}</p>
     </div>
     <div v-if="$slots.action" class="empty-state__action">
@@ -19,8 +19,13 @@
 </template>
 
 <script setup>
-defineProps({
-  title: { type: String, default: '暂无数据' },
+import { computed } from 'vue';
+import { useI18n } from '../../composables/useI18n';
+
+const { t } = useI18n();
+
+const props = defineProps({
+  title: { type: String, default: '' },
   description: { type: String, default: '' },
   icon: { type: Boolean, default: true },
   size: {
@@ -29,6 +34,8 @@ defineProps({
     validator: (v) => ['sm', 'md', 'lg'].includes(v),
   },
 });
+
+const resolvedTitle = computed(() => props.title || t('common.empty'));
 </script>
 
 <style scoped>

@@ -79,7 +79,7 @@
         <th>{{ t('markets.signal') }}</th>
       </template>
       <template #body>
-        <tr v-for="row in filteredMarkets" :key="row.pair">
+        <tr v-for="row in filteredMarkets" :key="row.pair" class="cursor-pointer hover:bg-[rgba(59,130,246,0.05)]" @click="goToChart(row.pair)">
           <td>{{ row.pair }}</td>
           <td class="numeric">{{ row.last }}</td>
           <td :class="['numeric', row.change.startsWith('-') ? 'text-danger' : 'text-success']">{{ row.change }}%</td>
@@ -93,14 +93,15 @@
         <VirtualList
           v-if="filteredMarkets.length > 20"
           :items="filteredMarkets"
-          :item-height="110"
+          :item-height="150"
           :buffer="2"
           height="calc(100vh - 400px)"
           :item-key="(item) => item.pair"
         >
           <template #default="{ item: row }">
             <div
-              class="market-card mini-card p-4 flex flex-col gap-3 active:bg-[rgba(59,130,246,0.08)] transition-colors"
+              class="market-card mini-card p-4 flex flex-col gap-3 cursor-pointer hover:bg-[rgba(59,130,246,0.08)] active:bg-[rgba(59,130,246,0.12)] transition-colors"
+              @click="goToChart(row.pair)"
             >
               <div class="flex items-start justify-between">
                 <div class="flex flex-col gap-1">
@@ -122,7 +123,8 @@
           <div
             v-for="row in filteredMarkets"
             :key="row.pair"
-            class="market-card mini-card p-4 flex flex-col gap-3 active:bg-[rgba(59,130,246,0.08)] transition-colors"
+            class="market-card mini-card p-4 flex flex-col gap-3 cursor-pointer hover:bg-[rgba(59,130,246,0.08)] active:bg-[rgba(59,130,246,0.12)] transition-colors"
+            @click="goToChart(row.pair)"
           >
             <div class="flex items-start justify-between">
               <div class="flex flex-col gap-1">
@@ -146,6 +148,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import KpiStat from '../components/common/KpiStat.vue';
@@ -156,6 +159,7 @@ import StatusTag from '../components/common/StatusTag.vue';
 import VirtualList from '../components/common/VirtualList.vue';
 
 const { t } = useI18n();
+const router = useRouter();
 
 const loading = ref(false);
 const searchQuery = ref('');
@@ -257,5 +261,12 @@ const refresh = async () => {
   loading.value = true;
   await new Promise((resolve) => setTimeout(resolve, 1000));
   loading.value = false;
+};
+
+const goToChart = (symbol) => {
+  router.push({
+    path: '/chart',
+    query: { symbol }
+  });
 };
 </script>

@@ -13,14 +13,14 @@
           <td :colspan="columnCount">
             <div class="data-table__loading-content">
               <span class="data-table__spinner" />
-              <span>加载中...</span>
+              <span>{{ resolvedLoadingText }}</span>
             </div>
           </td>
         </tr>
         <tr v-else-if="empty" class="data-table__empty">
           <td :colspan="columnCount">
             <slot name="empty">
-              <EmptyState :title="emptyText" size="sm" />
+              <EmptyState :title="resolvedEmptyText" size="sm" />
             </slot>
           </td>
         </tr>
@@ -32,11 +32,11 @@
   <div v-else class="data-table-cards">
     <div v-if="loading" class="data-table__loading-content">
       <span class="data-table__spinner" />
-      <span>加载中...</span>
+      <span>{{ resolvedLoadingText }}</span>
     </div>
     <div v-else-if="empty" class="data-table__empty-card">
       <slot name="empty">
-        <EmptyState :title="emptyText" size="sm" />
+        <EmptyState :title="resolvedEmptyText" size="sm" />
       </slot>
     </div>
     <div v-else class="data-table-cards__list">
@@ -46,21 +46,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from '../../composables/useI18n';
 import EmptyState from './EmptyState.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
   stickyHeader: { type: Boolean, default: true },
   loading: { type: Boolean, default: false },
   empty: { type: Boolean, default: false },
-  emptyText: { type: String, default: '暂无数据' },
+  emptyText: { type: String, default: '' },
+  loadingText: { type: String, default: '' },
   columnCount: { type: Number, default: 1 },
   maxHeight: { type: String, default: '' }, // 可选的最大高度，如 '400px'
   cardMode: { type: Boolean, default: false }, // 启用卡片模式（移动端）
 });
 
-// Detect narrow screen (<=640px)
-const isNarrowScreen = ref(false);
+const resolvedEmptyText = computed(() => props.emptyText || t('common.empty'));
+const resolvedLoadingText = computed(() => props.loadingText || t('common.loading'));
+
+// Detect narrow screen (<=640px) - 初始化时直接读取以避免闪烁
+const isNarrowScreen = ref(
+  typeof window !== 'undefined' ? window.innerWidth <= 640 : false
+);
 
 const checkScreenSize = () => {
   isNarrowScreen.value = window.innerWidth <= 640;

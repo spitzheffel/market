@@ -5,6 +5,7 @@ import HomeRight from '../views/home/HomeRight.vue'
 import HomeBottom from '../views/home/HomeBottom.vue'
 import Markets from '../views/Markets.vue'
 import Watchlist from '../views/Watchlist.vue'
+import ChartAnalysis from '../views/ChartAnalysis.vue'
 import Engine from '../views/Engine.vue'
 import Signals from '../views/Signals.vue'
 import Strategy from '../views/Strategy.vue'
@@ -34,6 +35,12 @@ const routes = [
         name: 'Watchlist',
         component: Watchlist,
         meta: { section: 'watchlist' }
+      },
+      {
+        path: 'chart',
+        name: 'ChartAnalysis',
+        component: ChartAnalysis,
+        meta: { section: 'chart' }
       },
       {
         path: 'engine',

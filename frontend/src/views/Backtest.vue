@@ -1,8 +1,8 @@
 <template>
   <section class="card p-5 flex flex-col gap-4">
-    <CardHeader title="回测" subtitle="任务与结果概览。">
+    <CardHeader :title="t('backtest.title')" :subtitle="t('backtest.subtitle')">
       <template #actions>
-        <button class="button">新建回测</button>
+        <button class="button">{{ t('backtest.newBacktest') }}</button>
       </template>
     </CardHeader>
 
@@ -14,11 +14,11 @@
     <!-- Empty state -->
     <EmptyState
       v-else-if="!backtests.length"
-      title="暂无回测任务"
-      description="点击上方按钮创建新的回测任务"
+      :title="t('backtest.emptyTitle')"
+      :description="t('backtest.emptyDesc')"
     >
       <template #action>
-        <button class="button">新建回测</button>
+        <button class="button">{{ t('backtest.newBacktest') }}</button>
       </template>
     </EmptyState>
 
@@ -35,11 +35,11 @@
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
           <div>
-            <div class="text-xs text-muted uppercase tracking-wide">区间</div>
+            <div class="text-xs text-muted uppercase tracking-wide">{{ t('backtest.range') }}</div>
             <div class="mono text-sm mt-1">{{ task.range }}</div>
           </div>
           <div>
-            <div class="text-xs text-muted uppercase tracking-wide">收益</div>
+            <div class="text-xs text-muted uppercase tracking-wide">{{ t('backtest.pnl') }}</div>
             <div
               class="mono text-sm mt-1"
               :class="task.pnl.startsWith('+') ? 'text-success' : task.pnl.startsWith('-') ? 'text-danger' : 'text-muted'"
@@ -48,11 +48,11 @@
             </div>
           </div>
           <div>
-            <div class="text-xs text-muted uppercase tracking-wide">回撤</div>
+            <div class="text-xs text-muted uppercase tracking-wide">{{ t('backtest.drawdown') }}</div>
             <div class="mono text-sm mt-1">{{ task.dd }}</div>
           </div>
           <div v-if="task.status === 'running'">
-            <div class="text-xs text-muted uppercase tracking-wide">进度</div>
+            <div class="text-xs text-muted uppercase tracking-wide">{{ t('backtest.progress') }}</div>
             <div class="mt-2">
               <div class="h-1.5 rounded-full bg-[rgba(148,163,184,0.18)] overflow-hidden">
                 <div
@@ -69,19 +69,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import StatusTag from '../components/common/StatusTag.vue';
 import Skeleton from '../components/common/Skeleton.vue';
 import EmptyState from '../components/common/EmptyState.vue';
 
+const { t } = useI18n();
+
 const loading = ref(true);
 
-const backtests = ref([
-  { id: 1, name: 'BTC-1m-三买', status: 'done', statusLabel: '完成', range: '2024-01 ~ 2024-03', pnl: '+12.4%', dd: '3.1%' },
-  { id: 2, name: 'ETH-5m-突破', status: 'running', statusLabel: '运行中', range: '2024-02 ~ 2024-03', pnl: '+5.2%', dd: '2.4%', progress: '65%' },
-  { id: 3, name: 'SOL-15m-回测', status: 'queued', statusLabel: '排队', range: '2023-12 ~ 2024-03', pnl: '--', dd: '--' },
+const backtestsRaw = ref([
+  { id: 1, name: 'BTC-1m-三买', status: 'done', range: '2024-01 ~ 2024-03', pnl: '+12.4%', dd: '3.1%' },
+  { id: 2, name: 'ETH-5m-突破', status: 'running', range: '2024-02 ~ 2024-03', pnl: '+5.2%', dd: '2.4%', progress: '65%' },
+  { id: 3, name: 'SOL-15m-回测', status: 'queued', range: '2023-12 ~ 2024-03', pnl: '--', dd: '--' },
 ]);
+
+const backtests = computed(() =>
+  backtestsRaw.value.map(task => ({
+    ...task,
+    statusLabel: t(`backtest.${task.status}`),
+  }))
+);
 
 const getStatusVariant = (status) => {
   const map = {

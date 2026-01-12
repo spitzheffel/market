@@ -1,10 +1,10 @@
 <template>
   <section class="card p-5 flex flex-col gap-4">
-    <CardHeader title="策略实验室" subtitle="模板与回测入口。">
+    <CardHeader :title="t('strategy.title')" :subtitle="t('strategy.subtitle')">
       <template #actions>
         <div class="flex gap-2">
-          <button class="button-ghost">新建模板</button>
-          <button class="button">运行回测</button>
+          <button class="button-ghost">{{ t('strategy.newTemplate') }}</button>
+          <button class="button">{{ t('strategy.runBacktest') }}</button>
         </div>
       </template>
     </CardHeader>
@@ -17,16 +17,16 @@
     <!-- Empty state -->
     <EmptyState
       v-else-if="!strategyTemplates.length"
-      title="暂无策略模板"
-      description="创建您的第一个策略模板开始回测"
+      :title="t('strategy.emptyTitle')"
+      :description="t('strategy.emptyDesc')"
     >
       <template #action>
-        <button class="button">新建模板</button>
+        <button class="button">{{ t('strategy.newTemplate') }}</button>
       </template>
     </EmptyState>
 
     <!-- Strategy templates -->
-    <CardSection v-else title="策略模板" layout="grid-3" gap="md">
+    <CardSection v-else :title="t('strategy.templates')" layout="grid-3" gap="md">
       <div v-for="tpl in strategyTemplates" :key="tpl.name" class="mini-card p-4 flex flex-col gap-2">
         <div class="flex items-center justify-between">
           <span class="text-xs text-muted uppercase tracking-wide">{{ tpl.levels }}</span>
@@ -39,17 +39,17 @@
         <strong class="mono text-base">{{ tpl.name }}</strong>
         <div class="flex items-center gap-4 mt-1">
           <div class="flex flex-col">
-            <span class="text-xs text-muted">胜率</span>
+            <span class="text-xs text-muted">{{ t('strategy.winRate') }}</span>
             <span class="mono text-sm" :class="parseFloat(tpl.winRate) >= 55 ? 'text-success' : ''">{{ tpl.winRate }}</span>
           </div>
           <div class="flex flex-col">
-            <span class="text-xs text-muted">评级</span>
+            <span class="text-xs text-muted">{{ t('strategy.rating') }}</span>
             <span class="mono text-sm">{{ tpl.rating }}</span>
           </div>
         </div>
         <div class="flex gap-2 mt-2">
-          <button class="button-ghost text-xs py-1.5 px-3">编辑</button>
-          <button class="button text-xs py-1.5 px-3">回测</button>
+          <button class="button-ghost text-xs py-1.5 px-3">{{ t('strategy.edit') }}</button>
+          <button class="button text-xs py-1.5 px-3">{{ t('strategy.backtest') }}</button>
         </div>
       </div>
     </CardSection>
@@ -58,11 +58,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import CardSection from '../components/common/CardSection.vue';
 import StatusTag from '../components/common/StatusTag.vue';
 import Skeleton from '../components/common/Skeleton.vue';
 import EmptyState from '../components/common/EmptyState.vue';
+
+const { t } = useI18n();
 
 const loading = ref(true);
 

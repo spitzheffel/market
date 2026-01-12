@@ -40,7 +40,7 @@
         v-for="summary in groupSummaries"
         :key="summary.name"
         :label="summary.name"
-        :value="`${summary.count} 标的`"
+        :value="`${summary.count} ${t('watchlist.items')}`"
         :note="summary.desc"
       />
     </CardSection>
@@ -68,8 +68,8 @@
         <th class="numeric">{{ t('watchlist.bias') }}</th>
       </template>
       <template #body>
-        <tr v-for="row in filteredWatchlist" :key="row.pair">
-          <td>
+        <tr v-for="row in filteredWatchlist" :key="row.pair" class="cursor-pointer hover:bg-[rgba(59,130,246,0.05)]" @click="goToChart(row.pair)">
+          <td @click.stop>
             <input
               type="checkbox"
               class="h-4 w-4 accent-[var(--accent)]"
@@ -98,14 +98,15 @@
         <VirtualList
           v-if="filteredWatchlist.length > 20"
           :items="filteredWatchlist"
-          :item-height="130"
+          :item-height="170"
           :buffer="2"
           height="calc(100vh - 450px)"
           :item-key="(item) => item.pair"
         >
           <template #default="{ item: row }">
             <div
-              class="watchlist-card mini-card p-4 flex flex-col gap-3 active:bg-[rgba(59,130,246,0.08)] transition-colors"
+              class="watchlist-card mini-card p-4 flex flex-col gap-3 cursor-pointer hover:bg-[rgba(59,130,246,0.08)] active:bg-[rgba(59,130,246,0.12)] transition-colors"
+              @click="goToChart(row.pair)"
             >
               <div class="flex items-start justify-between gap-3">
                 <div class="flex items-start gap-3 flex-1">
@@ -113,7 +114,7 @@
                     type="checkbox"
                     class="h-4 w-4 accent-[var(--accent)] mt-0.5"
                     :checked="selected.includes(row.pair)"
-                    @change="toggleSelect(row.pair)"
+                    @change.stop="toggleSelect(row.pair)"
                   />
                   <div class="flex flex-col gap-1 flex-1">
                     <span class="font-semibold text-sm">{{ row.pair }}</span>
@@ -143,7 +144,8 @@
           <div
             v-for="row in filteredWatchlist"
             :key="row.pair"
-            class="watchlist-card mini-card p-4 flex flex-col gap-3 active:bg-[rgba(59,130,246,0.08)] transition-colors"
+            class="watchlist-card mini-card p-4 flex flex-col gap-3 cursor-pointer hover:bg-[rgba(59,130,246,0.08)] active:bg-[rgba(59,130,246,0.12)] transition-colors"
+            @click="goToChart(row.pair)"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-start gap-3 flex-1">
@@ -151,7 +153,7 @@
                   type="checkbox"
                   class="h-4 w-4 accent-[var(--accent)] mt-0.5"
                   :checked="selected.includes(row.pair)"
-                  @change="toggleSelect(row.pair)"
+                  @change.stop="toggleSelect(row.pair)"
                 />
                 <div class="flex flex-col gap-1 flex-1">
                   <span class="font-semibold text-sm">{{ row.pair }}</span>
@@ -183,6 +185,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import FilterPill from '../components/common/FilterPill.vue';
@@ -194,6 +197,7 @@ import KpiStat from '../components/common/KpiStat.vue';
 import VirtualList from '../components/common/VirtualList.vue';
 
 const { t } = useI18n();
+const router = useRouter();
 
 const loading = ref(false);
 const searchQuery = ref('');
@@ -203,25 +207,34 @@ const filters = reactive({
   group: 'all',
 });
 
-const groupOptions = [
+const groupOptions = computed(() => [
   { label: t('common.all'), value: 'all', count: 25 },
   { label: t('watchlist.mainstream'), value: 'mainstream', count: 12 },
   { label: t('watchlist.futures'), value: 'futures', count: 8 },
   { label: t('watchlist.watch'), value: 'watch', count: 5 },
-];
-
-const groupSummaries = [
-  { name: t('watchlist.mainstream'), count: 12, desc: 'BTC, ETH, SOL...' },
-  { name: t('watchlist.futures'), count: 8, desc: '永续/USDT 本位' },
-  { name: t('watchlist.watch'), count: 5, desc: '暂不交易' },
-];
-
-const watchlist = ref([
-  { pair: 'ETH/USDT', tags: [t('watchlist.mainstream'), t('watchlist.spot')], subs: ['1m', '5m'], signal: 'buy', bias: '+1.2%' },
-  { pair: 'SOL/USDT', tags: [t('watchlist.mainstream'), t('watchlist.perpetual')], subs: ['5m', '15m'], signal: 'wait', bias: '+0.3%' },
-  { pair: 'BNB/USDT', tags: [t('watchlist.mainstream'), t('watchlist.spot')], subs: ['1m'], signal: 'sell', bias: '-0.9%' },
-  { pair: 'ARB/USDT', tags: [t('watchlist.watch')], subs: ['15m'], signal: 'wait', bias: '+0.1%' },
 ]);
+
+const groupSummaries = computed(() => [
+  { name: t('watchlist.mainstream'), count: 12, desc: t('watchlist.mainstreamDesc') },
+  { name: t('watchlist.futures'), count: 8, desc: t('watchlist.futuresDesc') },
+  { name: t('watchlist.watch'), count: 5, desc: t('watchlist.watchDesc') },
+]);
+
+// Mock 数据使用 tag key，在 computed 中翻译
+const watchlistRaw = ref([
+  { pair: 'ETH/USDT', tagKeys: ['mainstream', 'spot'], subs: ['1m', '5m'], signal: 'buy', bias: '+1.2%' },
+  { pair: 'SOL/USDT', tagKeys: ['mainstream', 'perpetual'], subs: ['5m', '15m'], signal: 'wait', bias: '+0.3%' },
+  { pair: 'BNB/USDT', tagKeys: ['mainstream', 'spot'], subs: ['1m'], signal: 'sell', bias: '-0.9%' },
+  { pair: 'ARB/USDT', tagKeys: ['watch'], subs: ['15m'], signal: 'wait', bias: '+0.1%' },
+]);
+
+// 响应式翻译标签
+const watchlist = computed(() => 
+  watchlistRaw.value.map(item => ({
+    ...item,
+    tags: item.tagKeys.map(key => t(`watchlist.${key}`)),
+  }))
+);
 
 // 计算信号标签
 const getSignalLabel = (signal) => {
@@ -282,5 +295,12 @@ const toggleSelectAll = () => {
   } else {
     selected.value = filteredWatchlist.value.map((w) => w.pair);
   }
+};
+
+const goToChart = (symbol) => {
+  router.push({
+    path: '/chart',
+    query: { symbol }
+  });
 };
 </script>
