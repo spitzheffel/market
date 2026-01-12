@@ -28,6 +28,11 @@
         />
       </FilterGroup>
 
+      <!-- 示例提示 -->
+      <div class="text-xs text-muted bg-[rgba(251,191,36,0.1)] px-3 py-1.5 rounded-full border border-[rgba(251,191,36,0.3)]">
+        <span class="text-[#fbbf24]">⚠</span> {{ t('chart.demoNote') }}
+      </div>
+
       <!-- 显示选项 -->
       <div class="flex flex-wrap items-center gap-3 ml-auto">
         <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-accent transition-colors">

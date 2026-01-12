@@ -3,9 +3,28 @@
     <CardHeader :title="t('markets.title')" :subtitle="t('markets.subtitle')">
       <template #actions>
         <div class="flex flex-wrap gap-2">
-          <FilterPill label="Binance" :active="true" />
-          <FilterPill :label="t('markets.spot')" :active="true" />
-          <FilterPill label="1m" :active="true" />
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-muted">{{ t('markets.dataSource') }}:</label>
+            <select v-model="topFilters.exchange" class="top-filter-select">
+              <option value="">{{ t('markets.all') }}</option>
+              <option v-for="ex in exchangeOptions" :key="ex" :value="ex">{{ ex }}</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-muted">{{ t('markets.contractType') }}:</label>
+            <select v-model="topFilters.marketType" class="top-filter-select">
+              <option value="">{{ t('markets.all') }}</option>
+              <option value="spot">{{ t('markets.spot') }}</option>
+              <option value="futures">{{ t('markets.futures') }}</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-muted">{{ t('markets.defaultInterval') }}:</label>
+            <select v-model="topFilters.defaultInterval" class="top-filter-select">
+              <option value="">{{ t('markets.all') }}</option>
+              <option v-for="int in intervalOptions" :key="int" :value="int">{{ int }}</option>
+            </select>
+          </div>
           <button class="button-ghost" @click="refresh" :disabled="loading">
             {{ loading ? t('common.refreshing') : t('common.refresh') }}
           </button>
@@ -30,6 +49,11 @@
         />
       </FilterGroup>
       <FilterGroup :label="t('markets.interval')">
+        <FilterPill
+          :label="t('markets.all')"
+          :active="filters.interval === ''"
+          @click="filters.interval = ''"
+        />
         <FilterPill
           v-for="interval in intervalOptions"
           :key="interval"
@@ -164,18 +188,30 @@ const router = useRouter();
 const loading = ref(false);
 const searchQuery = ref('');
 
+// 顶部筛选器
+const exchangeOptions = ['Binance', 'OKX', 'Bybit', 'Coinbase'];
+const topFilters = reactive({
+  exchange: '',
+  marketType: '',
+  defaultInterval: ''
+});
+
 const filters = reactive({
-  type: 'spot',
-  interval: '1m',
+  type: 'all',
+  interval: '',
   sort: 'change',
 });
 
 const typeOptions = [
+  { value: 'all' },
   { value: 'spot' },
   { value: 'futures' },
 ];
 
 const intervalOptions = ['1m', '5m', '15m'];
+
+// Add "All" option for interval filter
+const intervalFilterOptions = [{ value: '', label: 'all' }, ...intervalOptions.map(v => ({ value: v, label: v }))];
 
 const sortOptions = [
   { value: 'change' },
@@ -219,13 +255,30 @@ const parseValue = (value) => {
 const filteredMarkets = computed(() => {
   let result = marketsWithLabels.value;
 
-  // 类型过滤
-  if (filters.type) {
+  // 顶部筛选器：交易所过滤
+  if (topFilters.exchange) {
+    // 这里可以根据实际数据源字段进行过滤
+    // 示例：假设数据中有 exchange 字段
+    // result = result.filter((m) => m.exchange === topFilters.exchange);
+  }
+
+  // 顶部筛选器：合约类型过滤
+  if (topFilters.marketType) {
+    result = result.filter((m) => m.type === topFilters.marketType);
+  }
+
+  // 顶部筛选器：默认周期过滤
+  if (topFilters.defaultInterval) {
+    result = result.filter((m) => m.interval === topFilters.defaultInterval);
+  }
+
+  // 类型过滤（下方筛选器）
+  if (filters.type && filters.type !== 'all') {
     result = result.filter((m) => m.type === filters.type);
   }
 
-  // 周期过滤
-  if (filters.interval) {
+  // 周期过滤（下方筛选器）
+  if (filters.interval && filters.interval !== '') {
     result = result.filter((m) => m.interval === filters.interval);
   }
 

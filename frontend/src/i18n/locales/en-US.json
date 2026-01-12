@@ -56,6 +56,7 @@
     "searchPlaceholder": "Search pair, e.g. BTC/USDT",
     "type": "Type",
     "interval": "Interval",
+    "all": "All",
     "spot": "Spot",
     "futures": "Futures",
     "topMovers": "Top Movers",
@@ -71,7 +72,10 @@
     "emptyText": "No matching pairs found",
     "sortByChange": "Change",
     "sortByVolume": "Volume",
-    "sortByVolatility": "Volatility"
+    "sortByVolatility": "Volatility",
+    "dataSource": "Data Source",
+    "defaultInterval": "Default Interval",
+    "contractType": "Contract Type"
   },
   "watchlist": {
     "title": "Watchlist",
@@ -178,7 +182,8 @@
     "open": "Open",
     "close": "Close",
     "low": "Low",
-    "high": "High"
+    "high": "High",
+    "demoNote": "Demo data only - interval changes don't affect chart yet"
   },
   "autoTrade": {
     "title": "Auto Trade",
@@ -351,6 +356,7 @@
     "title": "Settings",
     "subtitle": "Preferences, risk control, account binding.",
     "saveSettings": "Save Settings",
+    "saving": "Saving...",
     "language": "Language",
     "theme": "Theme",
     "darkMode": "Dark",
@@ -359,9 +365,17 @@
     "drawdownLimit": "Drawdown Limit",
     "autoReduceWeight": "Auto reduce weight on limit breach",
     "accountBinding": "Account Binding",
+    "exchange": "Exchange",
+    "status": "Status",
     "connected": "Connected",
+    "apiKey": "API Key",
+    "reconnect": "Reconnect",
     "notifications": "Notifications",
     "email": "Email",
-    "webhook": "Webhook"
+    "webhook": "Webhook",
+    "telegram": "Telegram",
+    "dataSync": "Data Sync",
+    "syncInterval": "Sync Interval",
+    "autoSync": "Auto Sync"
   }
 }

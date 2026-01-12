@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, onMounted } from 'vue';
+import { computed, reactive, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import ChanShell from '../components/ChanShell.vue';
 import { useI18n } from '../composables/useI18n';
@@ -54,9 +54,12 @@ const section = computed(() => route.meta.section || 'home');
 const hasRight = computed(() => route.meta.hasRight ?? false);
 const hasBottom = computed(() => route.meta.hasBottom ?? false);
 
+// Timer reference for cleanup
+let tickerTimer = null;
+
 // Simulate real-time ticker updates
 onMounted(() => {
-  setInterval(() => {
+  tickerTimer = setInterval(() => {
     // Simulate price changes
     const basePrice = 67420.5;
     const variation = (Math.random() - 0.5) * 100;
@@ -68,5 +71,13 @@ onMounted(() => {
     ticker.change = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
     ticker.changeDir = changeVal >= 0 ? 'up' : 'down';
   }, 3000);
+});
+
+// Clean up timer on component unmount
+onBeforeUnmount(() => {
+  if (tickerTimer) {
+    clearInterval(tickerTimer);
+    tickerTimer = null;
+  }
 });
 </script>

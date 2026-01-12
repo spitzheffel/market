@@ -56,6 +56,7 @@
     "searchPlaceholder": "搜索交易对，如 BTC/USDT",
     "type": "类型",
     "interval": "周期",
+    "all": "全部",
     "spot": "现货",
     "futures": "合约",
     "topMovers": "涨幅前列",
@@ -71,7 +72,10 @@
     "emptyText": "未找到匹配的交易对",
     "sortByChange": "涨幅",
     "sortByVolume": "成交额",
-    "sortByVolatility": "波动"
+    "sortByVolatility": "波动",
+    "dataSource": "数据源",
+    "defaultInterval": "默认周期",
+    "contractType": "合约类型"
   },
   "watchlist": {
     "title": "自选池",
@@ -178,7 +182,8 @@
     "open": "开",
     "close": "收",
     "low": "低",
-    "high": "高"
+    "high": "高",
+    "demoNote": "当前为示例数据，周期切换暂不影响图表"
   },
   "autoTrade": {
     "title": "自动交易",
@@ -351,17 +356,26 @@
     "title": "设置",
     "subtitle": "偏好、风控、账户绑定。",
     "saveSettings": "保存设置",
+    "saving": "保存中...",
     "language": "语言",
     "theme": "主题",
     "darkMode": "暗色",
     "lightMode": "浅色",
     "riskControl": "风控",
-    "drawdownLimit": "单标的回撤",
+    "drawdownLimit": "单标的回撤限制",
     "autoReduceWeight": "超限自动降权",
     "accountBinding": "账户绑定",
+    "exchange": "交易所",
+    "status": "状态",
     "connected": "已连接",
+    "apiKey": "API 密钥",
+    "reconnect": "重新连接",
     "notifications": "通知方式",
     "email": "邮件",
-    "webhook": "Webhook"
+    "webhook": "Webhook",
+    "telegram": "Telegram",
+    "dataSync": "数据同步",
+    "syncInterval": "同步间隔",
+    "autoSync": "自动同步"
   }
 }
