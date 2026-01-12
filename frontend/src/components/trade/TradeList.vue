@@ -60,7 +60,7 @@ const props = defineProps({
   }
 });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const columns = computed(() => [
   { key: 'symbol', label: t('autoTrade.symbol'), width: '120px' },
@@ -74,13 +74,13 @@ const columns = computed(() => [
 
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);
-  return date.toLocaleString('zh-CN', {
+  return new Intl.DateTimeFormat(locale.value, {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
-  });
+  }).format(date);
 };
 </script>
 

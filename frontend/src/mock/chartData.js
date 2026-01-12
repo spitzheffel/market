@@ -20,7 +20,7 @@ function generateKlineData(basePrice = 67000, count = 120) {
 
     data.push({
       timestamp,
-      date: new Date(timestamp).toLocaleString('zh-CN', {
+      date: new Date(timestamp).toLocaleString(undefined, {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',

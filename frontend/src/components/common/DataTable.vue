@@ -4,21 +4,43 @@
     <table class="data-table">
       <thead class="data-table__head">
         <tr>
-          <slot name="header" />
+          <slot name="header">
+            <th
+              v-for="col in resolvedColumns"
+              :key="col.key"
+              :style="col.width ? { width: col.width } : undefined"
+              :class="[col.headerClass, col.class, col.hideMobile ? 'hide-mobile' : '', col.hideTablet ? 'hide-tablet' : '']"
+            >
+              {{ col.label }}
+            </th>
+          </slot>
         </tr>
       </thead>
       <tbody class="data-table__body">
-        <slot name="body" />
+        <slot name="body">
+          <tr v-for="(row, rowIndex) in resolvedData" :key="getRowKey(row, rowIndex)">
+            <td
+              v-for="col in resolvedColumns"
+              :key="col.key"
+              :style="col.width ? { width: col.width } : undefined"
+              :class="[col.cellClass, col.class, col.hideMobile ? 'hide-mobile' : '', col.hideTablet ? 'hide-tablet' : '']"
+            >
+              <slot :name="col.key" :row="row" :value="row[col.key]" :column="col">
+                {{ row[col.key] }}
+              </slot>
+            </td>
+          </tr>
+        </slot>
         <tr v-if="loading" class="data-table__loading">
-          <td :colspan="columnCount">
+          <td :colspan="resolvedColumnCount">
             <div class="data-table__loading-content">
               <span class="data-table__spinner" />
               <span>{{ resolvedLoadingText }}</span>
             </div>
           </td>
         </tr>
-        <tr v-else-if="empty" class="data-table__empty">
-          <td :colspan="columnCount">
+        <tr v-else-if="resolvedEmpty" class="data-table__empty">
+          <td :colspan="resolvedColumnCount">
             <slot name="empty">
               <EmptyState :title="resolvedEmptyText" size="sm" />
             </slot>
@@ -34,7 +56,7 @@
       <span class="data-table__spinner" />
       <span>{{ resolvedLoadingText }}</span>
     </div>
-    <div v-else-if="empty" class="data-table__empty-card">
+    <div v-else-if="resolvedEmpty" class="data-table__empty-card">
       <slot name="empty">
         <EmptyState :title="resolvedEmptyText" size="sm" />
       </slot>
@@ -58,13 +80,37 @@ const props = defineProps({
   empty: { type: Boolean, default: false },
   emptyText: { type: String, default: '' },
   loadingText: { type: String, default: '' },
-  columnCount: { type: Number, default: 1 },
+  columnCount: { type: Number, default: 0 },
   maxHeight: { type: String, default: '' }, // 可选的最大高度，如 '400px'
   cardMode: { type: Boolean, default: false }, // 启用卡片模式（移动端）
+
+  // Optional: column + data driven mode
+  columns: { type: Array, default: undefined },
+  data: { type: Array, default: undefined },
+  rowKey: { type: [String, Function], default: 'id' },
 });
 
 const resolvedEmptyText = computed(() => props.emptyText || t('common.empty'));
 const resolvedLoadingText = computed(() => props.loadingText || t('common.loading'));
+
+const resolvedColumns = computed(() => (Array.isArray(props.columns) ? props.columns : []));
+const resolvedData = computed(() => (Array.isArray(props.data) ? props.data : []));
+
+const resolvedColumnCount = computed(() => {
+  if (props.columnCount && props.columnCount > 0) return props.columnCount;
+  if (resolvedColumns.value.length > 0) return resolvedColumns.value.length;
+  return 1;
+});
+
+const resolvedEmpty = computed(() =>
+  props.empty || (resolvedColumns.value.length > 0 && resolvedData.value.length === 0)
+);
+
+const getRowKey = (row, index) => {
+  if (typeof props.rowKey === 'function') return props.rowKey(row, index);
+  if (row && typeof props.rowKey === 'string' && row[props.rowKey] != null) return row[props.rowKey];
+  return index;
+};
 
 // Detect narrow screen (<=640px) - 初始化时直接读取以避免闪烁
 const isNarrowScreen = ref(

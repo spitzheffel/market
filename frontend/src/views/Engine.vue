@@ -19,9 +19,9 @@
     <template v-else>
       <!-- 参数配置 -->
       <CardSection :title="t('engine.parameters')" :subtitle="t('engine.parametersDesc')" layout="grid-3" gap="md">
-        <div v-for="param in engineParams" :key="param.label" class="param p-4">
+        <div v-for="param in engineParams" :key="param.key" class="param p-4">
           <div class="flex items-center justify-between mb-2">
-            <label>{{ param.label }}</label>
+            <label>{{ t(param.labelKey) }}</label>
             <span class="mono text-sm text-accent">{{ param.value }}</span>
           </div>
           <input
@@ -215,14 +215,14 @@ import {
   mockEngineStats
 } from '../mock/engineData';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const loading = ref(true);
 const saving = ref(false);
 
 const defaultParams = [
-  { label: t('engine.mergeRelation'), value: 1, min: 0, max: 2 },
-  { label: t('engine.minFenxingK'), value: 3, min: 2, max: 6 },
-  { label: t('engine.minXianduanBi'), value: 3, min: 3, max: 6 },
+  { key: 'mergeRelation', labelKey: 'engine.mergeRelation', value: 1, min: 0, max: 2 },
+  { key: 'minFenxingK', labelKey: 'engine.minFenxingK', value: 3, min: 2, max: 6 },
+  { key: 'minXianduanBi', labelKey: 'engine.minXianduanBi', value: 3, min: 3, max: 6 },
 ];
 
 const engineParams = ref(defaultParams.map((p) => ({ ...p })));
@@ -262,16 +262,32 @@ const formatConfidence = (confidence) => {
 
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now - date;
-  const hours = Math.floor(diff / 3600000);
-  const minutes = Math.floor((diff % 3600000) / 60000);
+  const diffMs = Date.now() - date.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMs / 3600000);
+  const days = Math.floor(diffMs / 86400000);
 
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ago`;
-  } else {
-    return `${minutes}m ago`;
+  if (minutes < 60) {
+    const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+    return rtf.format(-Math.max(0, minutes), 'minute');
   }
+
+  if (hours < 24) {
+    const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+    return rtf.format(-hours, 'hour');
+  }
+
+  if (days < 7) {
+    const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+    return rtf.format(-days, 'day');
+  }
+
+  return new Intl.DateTimeFormat(locale.value, {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 };
 
 // Simulate data loading

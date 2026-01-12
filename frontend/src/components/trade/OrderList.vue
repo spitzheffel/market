@@ -26,7 +26,7 @@
         <div class="mono text-sm">
           ${{ row.price.toLocaleString() }}
           <div v-if="row.stopPrice" class="text-xs text-muted">
-            Stop: ${{ row.stopPrice.toLocaleString() }}
+            {{ t('autoTrade.stop') }}: ${{ row.stopPrice.toLocaleString() }}
           </div>
         </div>
       </template>
@@ -84,7 +84,7 @@ const props = defineProps({
   }
 });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const columns = computed(() => [
   { key: 'symbol', label: t('autoTrade.symbol'), width: '120px' },
@@ -119,18 +119,32 @@ const formatStatus = (status) => {
 
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now - date;
-  const hours = Math.floor(diff / 3600000);
-  const minutes = Math.floor((diff % 3600000) / 60000);
+  const diffMs = Date.now() - date.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMs / 3600000);
+  const days = Math.floor(diffMs / 86400000);
 
-  if (hours > 24) {
-    return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-  } else if (hours > 0) {
-    return `${hours}h ${minutes}m ago`;
-  } else {
-    return `${minutes}m ago`;
+  if (minutes < 60) {
+    const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+    return rtf.format(-Math.max(0, minutes), 'minute');
   }
+
+  if (hours < 24) {
+    const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+    return rtf.format(-hours, 'hour');
+  }
+
+  if (days < 7) {
+    const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+    return rtf.format(-days, 'day');
+  }
+
+  return new Intl.DateTimeFormat(locale.value, {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 };
 
 const cancelOrder = (order) => {
@@ -203,7 +217,7 @@ const cancelOrder = (order) => {
   border-radius: 6px;
   background: rgba(148, 163, 184, 0.1);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  color: var(--text);
+  color: var(--ink);
   cursor: pointer;
   transition: all 0.2s;
 }

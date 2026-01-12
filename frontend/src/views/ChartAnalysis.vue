@@ -132,7 +132,7 @@ import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import FilterGroup from '../components/common/FilterGroup.vue';
 import FilterPill from '../components/common/FilterPill.vue';
-import ChanChart from '../components/chart/ChanChart.vue';
+import ChanChart from '../components/Chart/ChanChart.vue';
 import { getChartData } from '../mock/chartData';
 
 const { t } = useI18n();
@@ -184,7 +184,7 @@ watch(selectedInterval, (newInterval) => {
 .select-input {
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.25);
-  color: var(--text);
+  color: var(--ink);
   outline: none;
   transition: all 0.2s ease;
 }

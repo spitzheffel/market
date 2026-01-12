@@ -100,7 +100,7 @@ import {
   mockEquityHistory
 } from '../mock/tradeData';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const loading = ref(true);
 const activeTab = ref('positions');
 
@@ -118,7 +118,7 @@ const tabs = computed(() => [
 ]);
 
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(locale.value, {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2
@@ -151,7 +151,7 @@ onMounted(async () => {
 }
 
 .tab-button:hover {
-  color: var(--text);
+  color: var(--ink);
 }
 
 .tab-button.active {

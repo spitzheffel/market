@@ -1,9 +1,9 @@
 <template>
   <section class="chart-card card flex flex-col gap-4 p-5">
-    <CardHeader title="结构叠加" subtitle="笔、线段、中枢、背驰映射。">
+    <CardHeader :title="t('home.structureOverlay')" :subtitle="t('home.structureOverlayDesc')">
       <template #actions>
-        <button class="button-ghost">叠加：开启</button>
-        <button class="button-ghost">自动缩放</button>
+        <button class="button-ghost">{{ t('home.overlayOn') }}</button>
+        <button class="button-ghost">{{ t('home.autoZoom') }}</button>
       </template>
     </CardHeader>
     <div class="chart-shell grid grid-rows-[1fr_auto] gap-3 p-4">
@@ -41,33 +41,33 @@
         <div class="chart-side flex flex-col gap-3">
           <KpiStat
             v-for="stat in miniStats"
-            :key="stat.label"
-            :label="stat.label"
+            :key="stat.labelKey"
+            :label="t(stat.labelKey)"
             :value="stat.value"
-            :note="stat.note"
+            :note="t(stat.noteKey)"
             :tone="stat.tone"
           />
         </div>
       </div>
       <div class="chart-legend grid grid-cols-2 sm:flex sm:flex-wrap gap-3 text-sm text-muted">
-        <span><span class="legend-dot" style="background: #60a5fa"></span>价格</span>
-        <span><span class="legend-dot" style="background: #22d3ee"></span>线段</span>
-        <span><span class="legend-dot" style="background: #f59e0b"></span>中枢</span>
-        <span><span class="legend-dot" style="background: #f43f5e"></span>卖点</span>
+        <span><span class="legend-dot" style="background: #60a5fa"></span>{{ t('home.price') }}</span>
+        <span><span class="legend-dot" style="background: #22d3ee"></span>{{ t('home.segment') }}</span>
+        <span><span class="legend-dot" style="background: #f59e0b"></span>{{ t('home.hub') }}</span>
+        <span><span class="legend-dot" style="background: #f43f5e"></span>{{ t('home.sellPoint') }}</span>
       </div>
     </div>
     <div class="chart-footer grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-muted">
-      <div v-for="item in chartFooter" :key="item.label">
-        {{ item.label }}: <span class="mono">{{ item.value }}</span>
+      <div v-for="item in chartFooter" :key="item.labelKey">
+        {{ t(item.labelKey) }}: <span class="mono">{{ item.value }}</span>
       </div>
     </div>
   </section>
 
   <section class="levels-row grid gap-4 xl:grid-cols-[1.2fr_1fr]">
     <div class="levels-card card flex flex-col gap-4 p-5">
-      <CardHeader title="多级别快照" subtitle="1m / 5m / 15m 多周期联动">
+      <CardHeader :title="t('home.multiLevelSnapshot')" :subtitle="t('home.multiLevelDesc')">
         <template #actions>
-          <button class="button-ghost">锁定联动</button>
+          <button class="button-ghost">{{ t('home.lockSync') }}</button>
         </template>
       </CardHeader>
       <div class="level-grid grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -79,20 +79,20 @@
           :note="level.note"
         />
       </div>
-      <div class="panel-sub">共识：买方区间形成（弱）。</div>
+      <div class="panel-sub">{{ t('home.consensus') }}</div>
     </div>
     <div class="watch-card card flex flex-col gap-4 p-5">
-      <CardHeader title="自选池" subtitle="自动扫描缠论信号">
+      <CardHeader :title="t('home.watchlistTitle')" :subtitle="t('home.watchlistDesc')">
         <template #actions>
-          <button class="button-ghost">编辑</button>
+          <button class="button-ghost">{{ t('home.edit') }}</button>
         </template>
       </CardHeader>
-      <DataTable :loading="loading" :column-count="4" :empty="!watchlist.length" empty-text="暂无自选标的">
+      <DataTable :loading="loading" :column-count="4" :empty="!watchlist.length" :empty-text="t('watchlist.emptyText')">
         <template #header>
-          <th>交易对</th>
-          <th class="numeric">最新价</th>
-          <th>信号</th>
-          <th class="numeric">偏向</th>
+          <th>{{ t('home.pair') }}</th>
+          <th class="numeric">{{ t('home.lastPrice') }}</th>
+          <th>{{ t('home.signal') }}</th>
+          <th class="numeric">{{ t('home.bias') }}</th>
         </template>
         <template #body>
           <tr v-for="row in watchlist" :key="row.pair">
@@ -108,39 +108,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from '../../composables/useI18n';
 import CardHeader from '../../components/common/CardHeader.vue';
 import KpiStat from '../../components/common/KpiStat.vue';
 import StatusTag from '../../components/common/StatusTag.vue';
 import DataTable from '../../components/common/DataTable.vue';
 
+const { t } = useI18n();
 const loading = ref(true);
 
 const miniStats = [
-  { label: '突破力度', value: '0.78', note: '线段 3 对比 1', tone: 'up' },
-  { label: '背驰指数', value: '+12.4', note: '动能减弱', tone: 'warn' },
-  { label: '中枢同步', value: '3 / 4', note: '多级别对齐' },
+  { labelKey: 'home.breakoutStrength', value: '0.78', noteKey: 'home.breakoutNote', tone: 'up' },
+  { labelKey: 'home.divergenceIndex', value: '+12.4', noteKey: 'home.divergenceNote', tone: 'warn' },
+  { labelKey: 'home.hubSync', value: '3 / 4', noteKey: 'home.hubSyncNote' },
 ];
 
 const chartFooter = [
-  { label: '结构更新时间', value: '00:00:47' },
-  { label: '最新确认笔', value: 'S-28' },
-  { label: '线段斜率', value: '+1.8%' },
-  { label: '中枢重叠', value: '0.62' },
+  { labelKey: 'home.structureUpdateTime', value: '00:00:47' },
+  { labelKey: 'home.latestConfirmedBi', value: 'S-28' },
+  { labelKey: 'home.segmentSlope', value: '+1.8%' },
+  { labelKey: 'home.hubOverlap', value: '0.62' },
 ];
 
-const levels = [
-  { level: '1m', title: '笔 42', note: '中枢 6 | 趋势上' },
-  { level: '5m', title: '线段 12', note: '中枢 3 | 趋势盘整' },
-  { level: '15m', title: '线段 6', note: '中枢 2 | 趋势上' },
-];
+const levels = computed(() => [
+  { level: '1m', title: t('home.biCount') + ' 42', note: t('home.hubCount') + ' 6 | ' + t('home.trendUp') },
+  { level: '5m', title: t('home.segmentCount') + ' 12', note: t('home.hubCount') + ' 3 | ' + t('home.trendConsolidation') },
+  { level: '15m', title: t('home.segmentCount') + ' 6', note: t('home.hubCount') + ' 2 | ' + t('home.trendUp') },
+]);
 
-const watchlist = [
-  { pair: 'ETH/USDT', last: '3,492.1', signal: 'buy', signalLabel: '买', bias: '+1.2%' },
-  { pair: 'SOL/USDT', last: '142.8', signal: 'wait', signalLabel: '观望', bias: '+0.3%' },
-  { pair: 'BNB/USDT', last: '612.4', signal: 'sell', signalLabel: '卖', bias: '-0.9%' },
-  { pair: 'ARB/USDT', last: '1.16', signal: 'wait', signalLabel: '观望', bias: '+0.1%' },
-];
+const watchlist = computed(() => [
+  { pair: 'ETH/USDT', last: '3,492.1', signal: 'buy', signalLabel: t('signals.buy'), bias: '+1.2%' },
+  { pair: 'SOL/USDT', last: '142.8', signal: 'wait', signalLabel: t('signals.wait'), bias: '+0.3%' },
+  { pair: 'BNB/USDT', last: '612.4', signal: 'sell', signalLabel: t('signals.sell'), bias: '-0.9%' },
+  { pair: 'ARB/USDT', last: '1.16', signal: 'wait', signalLabel: t('signals.wait'), bias: '+0.1%' },
+]);
 
 // Simulate data loading
 onMounted(async () => {
