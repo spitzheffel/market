@@ -89,7 +89,7 @@ export const mockRecentTradingPoints = [
     price: 67420,
     time: Date.now() - 3600000 * 0.5,
     confidence: 'high', // high, medium, low
-    reason: '一卖：笔背驰'
+    reasonKey: 'engine.reasons.sell1StrokeDivergence'
   },
   {
     index: 95,
@@ -98,7 +98,7 @@ export const mockRecentTradingPoints = [
     price: 66800,
     time: Date.now() - 3600000 * 2,
     confidence: 'medium',
-    reason: '二买：中枢回抽'
+    reasonKey: 'engine.reasons.buy2HubPullback'
   },
   {
     index: 72,
@@ -107,7 +107,7 @@ export const mockRecentTradingPoints = [
     price: 66200,
     time: Date.now() - 3600000 * 5,
     confidence: 'high',
-    reason: '一买：线段背驰'
+    reasonKey: 'engine.reasons.buy1SegmentDivergence'
   }
 ];
 

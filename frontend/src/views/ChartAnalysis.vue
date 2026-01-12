@@ -127,7 +127,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import FilterGroup from '../components/common/FilterGroup.vue';
@@ -137,6 +137,7 @@ import { getChartData } from '../mock/chartData';
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 
 // 可选标的
 const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT'];
@@ -147,6 +148,11 @@ onMounted(() => {
   const symbolFromQuery = route.query.symbol;
   if (symbolFromQuery && symbols.includes(symbolFromQuery)) {
     selectedSymbol.value = symbolFromQuery;
+  }
+
+  const intervalFromQuery = route.query.interval;
+  if (intervalFromQuery && intervals.includes(intervalFromQuery)) {
+    selectedInterval.value = intervalFromQuery;
   }
 });
 
@@ -170,13 +176,16 @@ const currentChartData = computed(() => {
 
 // 监听标的变化
 watch(selectedSymbol, (newSymbol) => {
-  console.log('Symbol changed to:', newSymbol);
+  const current = typeof route.query.symbol === 'string' ? route.query.symbol : '';
+  if (current === newSymbol) return;
+  router.replace({ query: { ...route.query, symbol: newSymbol } });
 });
 
 // 监听周期变化
 watch(selectedInterval, (newInterval) => {
-  console.log('Interval changed to:', newInterval);
-  // 在实际应用中，这里会重新获取对应周期的数据
+  const current = typeof route.query.interval === 'string' ? route.query.interval : '';
+  if (current === newInterval) return;
+  router.replace({ query: { ...route.query, interval: newInterval } });
 });
 </script>
 

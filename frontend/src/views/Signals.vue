@@ -117,16 +117,17 @@ const confidenceOptions = computed(() => [
 ]);
 
 const signalFeed = ref([
-  { tag: 'buy', code: 'B1', title: 'BTC/USDT | 1m', meta: '中枢突破', time: '00:48', priority: 'high', confidence: '0.71', expires: '4m', level: '1m' },
-  { tag: 'wait', code: 'S2', title: 'ETH/USDT | 5m', meta: '弱背驰', time: '02:14', priority: 'medium', confidence: '0.56', expires: '12m', level: '5m' },
-  { tag: 'sell', code: 'S1', title: 'BNB/USDT | 15m', meta: '线段衰竭', time: '04:02', priority: 'high', confidence: '0.68', expires: '28m', level: '15m' },
-  { tag: 'buy', code: 'B2', title: 'SOL/USDT | 1m', meta: '笔突破', time: '01:15', priority: 'medium', confidence: '0.62', expires: '3m', level: '1m' },
-  { tag: 'sell', code: 'S3', title: 'ADA/USDT | 5m', meta: '背驰卖点', time: '03:20', priority: 'high', confidence: '0.75', expires: '10m', level: '5m' },
+  { tag: 'buy', code: 'B1', title: 'BTC/USDT | 1m', metaKey: 'signals.meta.hubBreakout', time: '00:48', priority: 'high', confidence: '0.71', expires: '4m', level: '1m' },
+  { tag: 'wait', code: 'S2', title: 'ETH/USDT | 5m', metaKey: 'signals.meta.weakDivergence', time: '02:14', priority: 'medium', confidence: '0.56', expires: '12m', level: '5m' },
+  { tag: 'sell', code: 'S1', title: 'BNB/USDT | 15m', metaKey: 'signals.meta.segmentExhaustion', time: '04:02', priority: 'high', confidence: '0.68', expires: '28m', level: '15m' },
+  { tag: 'buy', code: 'B2', title: 'SOL/USDT | 1m', metaKey: 'signals.meta.strokeBreakout', time: '01:15', priority: 'medium', confidence: '0.62', expires: '3m', level: '1m' },
+  { tag: 'sell', code: 'S3', title: 'ADA/USDT | 5m', metaKey: 'signals.meta.divergenceSellPoint', time: '03:20', priority: 'high', confidence: '0.75', expires: '10m', level: '5m' },
 ]);
 
 const filteredSignals = computed(() => {
   let result = signalFeed.value.map(s => ({
     ...s,
+    meta: t(s.metaKey),
     priorityLabel: t(`common.${s.priority}`),
     priorityVariant: s.priority === 'high' ? 'danger' : s.priority === 'medium' ? 'warning' : 'neutral',
   }));
@@ -144,7 +145,7 @@ const filteredSignals = computed(() => {
   // 搜索过滤
   if (searchQuery.value) {
     const query = searchQuery.value.toUpperCase();
-    result = result.filter((s) => s.title.toUpperCase().includes(query) || s.meta.includes(query));
+    result = result.filter((s) => s.title.toUpperCase().includes(query) || s.meta.toUpperCase().includes(query));
   }
 
   // 置信度过滤

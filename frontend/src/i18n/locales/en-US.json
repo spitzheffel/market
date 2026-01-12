@@ -45,7 +45,10 @@
     "model": "Model",
     "newAlert": "New alert",
     "dataSource": "Data source",
-    "sync": "Sync"
+    "sync": "Sync",
+    "closeMenu": "Close menu",
+    "tagline": "Chan Lab",
+    "binanceSpot": "Binance Spot"
   },
   "markets": {
     "title": "Markets",
@@ -108,7 +111,14 @@
     "strong": "Strong",
     "weak": "Weak",
     "emptyTitle": "No Signals",
-    "emptyDesc": "No signals match the current filters"
+    "emptyDesc": "No signals match the current filters",
+    "meta": {
+      "hubBreakout": "Hub breakout",
+      "weakDivergence": "Weak divergence",
+      "segmentExhaustion": "Segment exhaustion",
+      "strokeBreakout": "Stroke breakout",
+      "divergenceSellPoint": "Divergence sell point"
+    }
   },
   "strategy": {
     "title": "Strategy Lab",
@@ -121,7 +131,12 @@
     "winRate": "Win Rate",
     "rating": "Rating",
     "edit": "Edit",
-    "backtest": "Backtest"
+    "backtest": "Backtest",
+    "templateNames": {
+      "multiLevelResonance": "Multi-level resonance",
+      "divergenceReversal": "Divergence reversal",
+      "trendExtension": "Trend extension"
+    }
   },
   "backtest": {
     "title": "Backtest",
@@ -136,7 +151,12 @@
     "done": "Done",
     "running": "Running",
     "queued": "Queued",
-    "failed": "Failed"
+    "failed": "Failed",
+    "taskNames": {
+      "btc1mThirdBuy": "BTC-1m-3rd Buy",
+      "eth5mBreakout": "ETH-5m-Breakout",
+      "sol15mBacktest": "SOL-15m-Backtest"
+    }
   },
   "chart": {
     "title": "Chart Analysis",
@@ -152,7 +172,13 @@
     "biCount": "Strokes",
     "xianduanCount": "Segments",
     "zhongshuCount": "Hubs",
-    "tradingPointsCount": "Trading Points"
+    "tradingPointsCount": "Trading Points",
+    "kline": "K-line",
+    "volume": "Volume",
+    "open": "Open",
+    "close": "Close",
+    "low": "Low",
+    "high": "High"
   },
   "autoTrade": {
     "title": "Auto Trade",
@@ -254,7 +280,12 @@
     "low": "Low",
     "info": "Info",
     "infoTitle": "Parameter Rules",
-    "infoDesc": "Parameters will be applied immediately to real-time calculations and historical playback after saving. Modifying merge relation parameters may affect existing stroke and segment divisions."
+    "infoDesc": "Parameters will be applied immediately to real-time calculations and historical playback after saving. Modifying merge relation parameters may affect existing stroke and segment divisions.",
+    "reasons": {
+      "sell1StrokeDivergence": "Sell 1: Stroke divergence",
+      "buy2HubPullback": "Buy 2: Hub pullback",
+      "buy1SegmentDivergence": "Buy 1: Segment divergence"
+    }
   },
   "home": {
     "structureOverlay": "Structure Overlay",

@@ -148,7 +148,6 @@ const formatTime = (timestamp) => {
 };
 
 const cancelOrder = (order) => {
-  console.log('Cancel order:', order);
   // TODO: Implement cancel order logic
 };
 </script>

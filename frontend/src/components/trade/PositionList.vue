@@ -120,7 +120,6 @@ const formatTime = (timestamp) => {
 };
 
 const closePosition = (position) => {
-  console.log('Close position:', position);
   // TODO: Implement close position logic
 };
 </script>

@@ -45,7 +45,10 @@
     "model": "模型",
     "newAlert": "新建预警",
     "dataSource": "数据源",
-    "sync": "同步"
+    "sync": "同步",
+    "closeMenu": "关闭菜单",
+    "tagline": "缠论实验室",
+    "binanceSpot": "Binance 现货"
   },
   "markets": {
     "title": "市场",
@@ -108,7 +111,14 @@
     "strong": "强",
     "weak": "弱",
     "emptyTitle": "暂无信号",
-    "emptyDesc": "当前筛选条件下没有匹配的信号"
+    "emptyDesc": "当前筛选条件下没有匹配的信号",
+    "meta": {
+      "hubBreakout": "中枢突破",
+      "weakDivergence": "弱背驰",
+      "segmentExhaustion": "线段衰竭",
+      "strokeBreakout": "笔突破",
+      "divergenceSellPoint": "背驰卖点"
+    }
   },
   "strategy": {
     "title": "策略实验室",
@@ -121,7 +131,12 @@
     "winRate": "胜率",
     "rating": "评级",
     "edit": "编辑",
-    "backtest": "回测"
+    "backtest": "回测",
+    "templateNames": {
+      "multiLevelResonance": "多级别共振",
+      "divergenceReversal": "背驰反转",
+      "trendExtension": "趋势延伸"
+    }
   },
   "backtest": {
     "title": "回测",
@@ -136,7 +151,12 @@
     "done": "完成",
     "running": "运行中",
     "queued": "排队",
-    "failed": "失败"
+    "failed": "失败",
+    "taskNames": {
+      "btc1mThirdBuy": "BTC-1m-三买",
+      "eth5mBreakout": "ETH-5m-突破",
+      "sol15mBacktest": "SOL-15m-回测"
+    }
   },
   "chart": {
     "title": "图表分析",
@@ -152,7 +172,13 @@
     "biCount": "笔数量",
     "xianduanCount": "线段数量",
     "zhongshuCount": "中枢数量",
-    "tradingPointsCount": "买卖点数量"
+    "tradingPointsCount": "买卖点数量",
+    "kline": "K线",
+    "volume": "成交量",
+    "open": "开",
+    "close": "收",
+    "low": "低",
+    "high": "高"
   },
   "autoTrade": {
     "title": "自动交易",
@@ -254,7 +280,12 @@
     "low": "低",
     "info": "说明",
     "infoTitle": "参数生效规则",
-    "infoDesc": "参数保存后将立即应用于实时计算与历史回放。修改包含关系参数可能影响已有的笔段划分结果。"
+    "infoDesc": "参数保存后将立即应用于实时计算与历史回放。修改包含关系参数可能影响已有的笔段划分结果。",
+    "reasons": {
+      "sell1StrokeDivergence": "一卖：笔背驰",
+      "buy2HubPullback": "二买：中枢回抽",
+      "buy1SegmentDivergence": "一买：线段背驰"
+    }
   },
   "home": {
     "structureOverlay": "结构叠加",

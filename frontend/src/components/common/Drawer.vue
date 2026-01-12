@@ -22,13 +22,13 @@
             <div class="logo">CS</div>
             <div>
               <h1 class="text-lg font-bold">ChanScope</h1>
-              <span class="text-xs text-[var(--muted)] uppercase tracking-wide">缠论实验室</span>
+              <span class="text-xs text-[var(--muted)] uppercase tracking-wide">{{ t('shell.tagline') }}</span>
             </div>
           </div>
           <button
             @click="close"
             class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[rgba(148,163,184,0.1)] transition-colors"
-            aria-label="关闭菜单"
+            :aria-label="t('shell.closeMenu')"
           >
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -48,12 +48,14 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from '../../composables/useI18n';
 
 defineProps({
   modelValue: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
+const { t } = useI18n();
 
 const drawerRef = ref(null);
 const touchStartX = ref(0);

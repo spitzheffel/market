@@ -163,7 +163,7 @@
                   {{ point.type === 'buy' ? 'B' : 'S' }}{{ point.level }}
                 </span>
                 <div>
-                  <div class="text-sm">{{ point.reason }}</div>
+                  <div class="text-sm">{{ point.reasonKey ? t(point.reasonKey) : point.reason }}</div>
                   <div class="text-xs text-muted">{{ formatTime(point.time) }}</div>
                 </div>
               </div>

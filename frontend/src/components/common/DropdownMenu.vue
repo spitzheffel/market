@@ -3,7 +3,7 @@
     <button
       @click="isOpen = !isOpen"
       class="dropdown-trigger w-10 h-10 rounded-lg flex items-center justify-center hover:bg-[rgba(148,163,184,0.1)] active:bg-[rgba(148,163,184,0.2)] transition-colors"
-      :aria-label="label"
+      :aria-label="ariaLabel"
       :aria-expanded="isOpen"
     >
       <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,11 +24,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useI18n } from '../../composables/useI18n';
 
-defineProps({
-  label: { type: String, default: '更多选项' },
+const props = defineProps({
+  label: { type: String, default: '' },
 });
+
+const { t } = useI18n();
+const ariaLabel = computed(() => props.label || t('shell.moreOptions'));
 
 const isOpen = ref(false);
 const dropdownRef = ref(null);

@@ -1,7 +1,7 @@
 <template>
   <ChanShell
     :section="section"
-    :ticker="ticker"
+    :ticker="tickerView"
     :model-name="modelName"
     :data-source="dataSource"
     :sync-interval="syncInterval"
@@ -23,8 +23,10 @@
 import { computed, reactive, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ChanShell from '../components/ChanShell.vue';
+import { useI18n } from '../composables/useI18n';
 
 const route = useRoute();
+const { t, locale } = useI18n();
 
 // Reactive ticker data - simulating real-time updates
 const ticker = reactive({
@@ -32,15 +34,21 @@ const ticker = reactive({
   price: '67,420.5',
   change: '+2.41%',
   changeDir: 'up',
-  source: 'Binance 现货',
+  sourceKey: 'shell.binanceSpot',
   interval: '1m',
 });
 
 // Model and data source settings
 const modelName = ref('Param-A');
-const dataSource = ref('Binance 现货');
+const dataSourceKey = ref('shell.binanceSpot');
+const dataSource = computed(() => t(dataSourceKey.value));
 const syncInterval = ref('1m');
 const syncRate = ref('98.7%');
+
+const tickerView = computed(() => ({
+  ...ticker,
+  source: t(ticker.sourceKey),
+}));
 
 const section = computed(() => route.meta.section || 'home');
 const hasRight = computed(() => route.meta.hasRight ?? false);
@@ -53,7 +61,7 @@ onMounted(() => {
     const basePrice = 67420.5;
     const variation = (Math.random() - 0.5) * 100;
     const newPrice = basePrice + variation;
-    ticker.price = newPrice.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    ticker.price = newPrice.toLocaleString(locale.value, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
     // Simulate change percentage
     const changeVal = (Math.random() - 0.4) * 5;

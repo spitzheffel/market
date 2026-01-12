@@ -4,19 +4,20 @@
     <div v-if="loading" class="flex flex-col gap-3">
       <Skeleton v-for="i in 3" :key="i" variant="card" height="60px" />
     </div>
-    <div
-      v-else
-      v-for="signal in signalFeed"
-      :key="signal.code"
-      class="signal-item grid grid-cols-[auto,1fr,auto] items-center gap-3 p-3"
-    >
-      <StatusTag :variant="signal.tag" :label="signal.code" />
-      <div>
-        <div class="signal-title">{{ signal.title }}</div>
-        <div class="signal-meta">{{ signal.meta }}</div>
+    <template v-else>
+      <div
+        v-for="signal in signalFeed"
+        :key="signal.code"
+        class="signal-item grid grid-cols-[auto,1fr,auto] items-center gap-3 p-3"
+      >
+        <StatusTag :variant="signal.tag" :label="signal.code" />
+        <div>
+          <div class="signal-title">{{ signal.title }}</div>
+          <div class="signal-meta">{{ signal.meta }}</div>
+        </div>
+        <div class="mono">{{ signal.time }}</div>
       </div>
-      <div class="mono">{{ signal.time }}</div>
-    </div>
+    </template>
   </section>
 
   <section class="risk-card card flex flex-col gap-4 p-5">

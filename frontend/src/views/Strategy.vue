@@ -27,7 +27,7 @@
 
     <!-- Strategy templates -->
     <CardSection v-else :title="t('strategy.templates')" layout="grid-3" gap="md">
-      <div v-for="tpl in strategyTemplates" :key="tpl.name" class="mini-card p-4 flex flex-col gap-2">
+      <div v-for="tpl in strategyTemplates" :key="tpl.id" class="mini-card p-4 flex flex-col gap-2">
         <div class="flex items-center justify-between">
           <span class="text-xs text-muted uppercase tracking-wide">{{ tpl.levels }}</span>
           <StatusTag
@@ -36,7 +36,7 @@
             size="sm"
           />
         </div>
-        <strong class="mono text-base">{{ tpl.name }}</strong>
+        <strong class="mono text-base">{{ t(tpl.nameKey) }}</strong>
         <div class="flex items-center gap-4 mt-1">
           <div class="flex flex-col">
             <span class="text-xs text-muted">{{ t('strategy.winRate') }}</span>
@@ -70,9 +70,9 @@ const { t } = useI18n();
 const loading = ref(true);
 
 const strategyTemplates = ref([
-  { name: '多级别共振', levels: '1m/5m/15m', winRate: '54%', rating: 'A-' },
-  { name: '背驰反转', levels: '5m/15m', winRate: '51%', rating: 'B+' },
-  { name: '趋势延伸', levels: '15m/1h', winRate: '56%', rating: 'A' },
+  { id: 'multiLevelResonance', nameKey: 'strategy.templateNames.multiLevelResonance', levels: '1m/5m/15m', winRate: '54%', rating: 'A-' },
+  { id: 'divergenceReversal', nameKey: 'strategy.templateNames.divergenceReversal', levels: '5m/15m', winRate: '51%', rating: 'B+' },
+  { id: 'trendExtension', nameKey: 'strategy.templateNames.trendExtension', levels: '15m/1h', winRate: '56%', rating: 'A' },
 ]);
 
 const getRatingVariant = (rating) => {

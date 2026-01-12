@@ -81,14 +81,15 @@ const { t } = useI18n();
 const loading = ref(true);
 
 const backtestsRaw = ref([
-  { id: 1, name: 'BTC-1m-三买', status: 'done', range: '2024-01 ~ 2024-03', pnl: '+12.4%', dd: '3.1%' },
-  { id: 2, name: 'ETH-5m-突破', status: 'running', range: '2024-02 ~ 2024-03', pnl: '+5.2%', dd: '2.4%', progress: '65%' },
-  { id: 3, name: 'SOL-15m-回测', status: 'queued', range: '2023-12 ~ 2024-03', pnl: '--', dd: '--' },
+  { id: 1, nameKey: 'backtest.taskNames.btc1mThirdBuy', status: 'done', range: '2024-01 ~ 2024-03', pnl: '+12.4%', dd: '3.1%' },
+  { id: 2, nameKey: 'backtest.taskNames.eth5mBreakout', status: 'running', range: '2024-02 ~ 2024-03', pnl: '+5.2%', dd: '2.4%', progress: '65%' },
+  { id: 3, nameKey: 'backtest.taskNames.sol15mBacktest', status: 'queued', range: '2023-12 ~ 2024-03', pnl: '--', dd: '--' },
 ]);
 
 const backtests = computed(() =>
   backtestsRaw.value.map(task => ({
     ...task,
+    name: t(task.nameKey),
     statusLabel: t(`backtest.${task.status}`),
   }))
 );

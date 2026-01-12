@@ -7,7 +7,7 @@
           <div class="logo">CS</div>
           <div>
             <h1>ChanScope</h1>
-            <span>缠论实验室</span>
+            <span>{{ t('shell.tagline') }}</span>
           </div>
         </div>
         <nav class="nav flex flex-col gap-2">
@@ -25,7 +25,7 @@
           </RouterLink>
         </nav>
         <div class="sidebar-footer mt-auto p-3 text-xs space-y-1">
-          {{ t('shell.dataSource') }}：{{ dataSource }}
+          {{ t('shell.dataSource') }}：{{ dataSourceLabel }}
           <div class="mono">{{ t('shell.sync') }} {{ syncInterval }} | {{ syncRate }}</div>
         </div>
       </aside>
@@ -51,7 +51,7 @@
           <LanguageSwitcher />
         </div>
         <template #footer>
-          {{ t('shell.dataSource') }}：{{ dataSource }}
+          {{ t('shell.dataSource') }}：{{ dataSourceLabel }}
           <div class="mono">{{ t('shell.sync') }} {{ syncInterval }} | {{ syncRate }}</div>
         </template>
       </Drawer>
@@ -75,7 +75,7 @@
           <span class="font-mono">{{ ticker.price }}</span>
           <span :class="['chg', ticker.changeDir]">{{ ticker.change }}</span>
           <span class="hidden sm:inline">|</span>
-          <span class="text-[var(--muted)] text-[11px] sm:text-xs">{{ ticker.source }}</span>
+          <span class="text-[var(--muted)] text-[11px] sm:text-xs">{{ tickerSource }}</span>
           <span class="text-[var(--muted)] text-[11px] sm:text-xs">{{ ticker.interval }}</span>
         </div>
 
@@ -162,12 +162,13 @@ const props = defineProps({
       price: '67,420.5',
       change: '+2.41%',
       changeDir: 'up',
-      source: 'Binance 现货',
+      sourceKey: 'shell.binanceSpot',
+      source: '',
       interval: '1m',
     }),
   },
   // Sidebar footer data
-  dataSource: { type: String, default: 'Binance 现货' },
+  dataSource: { type: String, default: '' },
   syncInterval: { type: String, default: '1m' },
   syncRate: { type: String, default: '98.7%' },
   // Top bar model name
@@ -176,6 +177,14 @@ const props = defineProps({
 
 const route = useRoute();
 const { t } = useI18n();
+
+const tickerSource = computed(() => {
+  if (props.ticker?.source) return props.ticker.source;
+  if (props.ticker?.sourceKey) return t(props.ticker.sourceKey);
+  return t('shell.binanceSpot');
+});
+
+const dataSourceLabel = computed(() => props.dataSource || t('shell.binanceSpot'));
 
 const navItems = computed(() => ([
   // 总览 - 仪表盘/网格图标

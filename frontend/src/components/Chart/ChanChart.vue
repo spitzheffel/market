@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import { CandlestickChart, LineChart, BarChart } from 'echarts/charts';
@@ -25,6 +25,7 @@ import {
   LegendComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
+import { useI18n } from '../../composables/useI18n';
 
 // 注册ECharts组件
 use([
@@ -67,6 +68,9 @@ const props = defineProps({
     default: true
   }
 });
+
+const emit = defineEmits(['chart-click']);
+const { t } = useI18n();
 
 const chartRef = ref(null);
 
@@ -314,27 +318,28 @@ const chartOption = computed(() => ({
       color: '#e2e8f0'
     },
     formatter: (params) => {
-      const klineParam = params.find(p => p.seriesName === 'K线');
+      const klineParam = params.find(p => p.seriesId === 'kline' || p.seriesType === 'candlestick');
       if (!klineParam) return '';
 
       const data = klineParam.data;
-      const volumeParam = params.find(p => p.seriesName === '成交量');
+      const volumeParam = params.find(p => p.seriesId === 'volume' || p.seriesType === 'bar');
 
       return `
         <div style="padding: 4px;">
           <div style="margin-bottom: 4px; font-weight: bold;">${dates.value[klineParam.dataIndex]}</div>
-          <div>开: ${data[1]}</div>
-          <div>收: ${data[2]}</div>
-          <div>低: ${data[3]}</div>
-          <div>高: ${data[4]}</div>
-          ${volumeParam ? `<div>量: ${volumeParam.data}</div>` : ''}
+          <div>${t('chart.open')}: ${data[1]}</div>
+          <div>${t('chart.close')}: ${data[2]}</div>
+          <div>${t('chart.low')}: ${data[3]}</div>
+          <div>${t('chart.high')}: ${data[4]}</div>
+          ${volumeParam ? `<div>${t('chart.volume')}: ${volumeParam.data}</div>` : ''}
         </div>
       `;
     }
   },
   series: [
     {
-      name: 'K线',
+      id: 'kline',
+      name: t('chart.kline'),
       type: 'candlestick',
       data: klineValues.value,
       itemStyle: {
@@ -354,7 +359,8 @@ const chartOption = computed(() => ({
       yAxisIndex: 0
     },
     {
-      name: '成交量',
+      id: 'volume',
+      name: t('chart.volume'),
       type: 'bar',
       data: volumes.value,
       itemStyle: {
@@ -370,13 +376,8 @@ const chartOption = computed(() => ({
 }));
 
 const handleChartClick = (params) => {
-  console.log('Chart clicked:', params);
+  emit('chart-click', params);
 };
-
-// 监听props变化，更新图表
-watch(() => props.chartData, () => {
-  // 图表会自动响应computed的变化
-}, { deep: true });
 </script>
 
 <style scoped>
