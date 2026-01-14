@@ -2,7 +2,7 @@
   <section class="card p-5 flex flex-col gap-4">
     <CardHeader :title="t('signals.title')" :subtitle="t('signals.subtitle')">
       <template #actions>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2 items-center">
           <FilterPill
             v-for="dir in directionOptions"
             :key="dir.value"
@@ -10,6 +10,9 @@
             :active="filters.direction === dir.value"
             @click="filters.direction = dir.value"
           />
+          <button class="button" @click="openAlertModal">
+            {{ t('signals.createAlert') }}
+          </button>
         </div>
       </template>
     </CardHeader>
@@ -78,6 +81,188 @@
         </div>
       </div>
     </div>
+
+    <CardSection
+      class="mt-2"
+      :title="t('signals.alertRules')"
+      :subtitle="t('signals.alertRulesDesc')"
+      layout="grid-2"
+      gap="md"
+    >
+      <div class="mini-card p-4">
+        <div class="space-y-3">
+          <div
+            v-for="rule in alertRules"
+            :key="rule.id"
+            class="flex items-start justify-between gap-3"
+          >
+            <div>
+              <div class="text-sm font-medium">{{ rule.symbol }} | {{ rule.interval }}</div>
+              <div class="text-xs text-muted">{{ t(rule.conditionKey) }}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <StatusTag
+                :variant="getPriorityVariant(rule.priority)"
+                :label="t(`common.${rule.priority}`)"
+                size="sm"
+              />
+              <label class="flex items-center gap-1 text-xs text-muted">
+                <input
+                  type="checkbox"
+                  v-model="rule.enabled"
+                  class="w-4 h-4 accent-[var(--accent)]"
+                />
+                <span>{{ rule.enabled ? t('signals.enabled') : t('signals.disabled') }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mini-card p-4">
+        <div class="text-xs text-muted uppercase tracking-wide">{{ t('signals.deliveryChannels') }}</div>
+        <div class="text-xs text-muted mb-3">{{ t('signals.deliveryChannelsDesc') }}</div>
+        <div class="space-y-2 text-sm">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="channelSettings.inApp"
+              class="w-4 h-4 accent-[var(--accent)]"
+            />
+            <span>{{ t('signals.channelInApp') }}</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="channelSettings.email"
+              class="w-4 h-4 accent-[var(--accent)]"
+            />
+            <span>{{ t('signals.channelEmail') }}</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="channelSettings.webhook"
+              class="w-4 h-4 accent-[var(--accent)]"
+            />
+            <span>{{ t('signals.channelWebhook') }}</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="channelSettings.telegram"
+              class="w-4 h-4 accent-[var(--accent)]"
+            />
+            <span>{{ t('signals.channelTelegram') }}</span>
+          </label>
+        </div>
+      </div>
+    </CardSection>
+
+    <Modal v-model="showAlertModal" :title="t('signals.createAlert')" size="lg">
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-3">
+          <div class="space-y-1">
+            <label class="text-xs text-muted uppercase tracking-wide">{{ t('signals.alertName') }}</label>
+            <input
+              v-model="alertForm.name"
+              type="text"
+              :placeholder="t('signals.alertNamePlaceholder')"
+              class="w-full rounded-lg border border-[rgba(148,163,184,0.25)] bg-[rgba(15,23,42,0.7)] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">{{ t('signals.symbol') }}</label>
+              <select
+                v-model="alertForm.symbol"
+                class="w-full rounded-lg border border-[rgba(148,163,184,0.25)] bg-[rgba(15,23,42,0.7)] px-3 py-2 text-sm text-slate-100"
+              >
+                <option v-for="symbol in alertSymbols" :key="symbol" :value="symbol">{{ symbol }}</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">{{ t('signals.interval') }}</label>
+              <select
+                v-model="alertForm.interval"
+                class="w-full rounded-lg border border-[rgba(148,163,184,0.25)] bg-[rgba(15,23,42,0.7)] px-3 py-2 text-sm text-slate-100"
+              >
+                <option v-for="interval in levelOptions" :key="interval" :value="interval">{{ interval }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-muted uppercase tracking-wide">{{ t('signals.alertCondition') }}</label>
+            <select
+              v-model="alertForm.condition"
+              class="w-full rounded-lg border border-[rgba(148,163,184,0.25)] bg-[rgba(15,23,42,0.7)] px-3 py-2 text-sm text-slate-100"
+            >
+              <option v-for="opt in conditionOptions" :key="opt.value" :value="opt.value">
+                {{ t(opt.labelKey) }}
+              </option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">{{ t('signals.alertPriority') }}</label>
+              <select
+                v-model="alertForm.priority"
+                class="w-full rounded-lg border border-[rgba(148,163,184,0.25)] bg-[rgba(15,23,42,0.7)] px-3 py-2 text-sm text-slate-100"
+              >
+                <option v-for="prio in priorityOptions" :key="prio" :value="prio">{{ t(`common.${prio}`) }}</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">{{ t('signals.alertExpiry') }}</label>
+              <select
+                v-model="alertForm.expiry"
+                class="w-full rounded-lg border border-[rgba(148,163,184,0.25)] bg-[rgba(15,23,42,0.7)] px-3 py-2 text-sm text-slate-100"
+              >
+                <option v-for="exp in expiryOptions" :key="exp.value" :value="exp.value">{{ exp.label }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="mini-card p-4 space-y-2">
+            <div class="text-xs text-muted uppercase tracking-wide">{{ t('signals.alertChannels') }}</div>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" v-model="alertChannels.inApp" class="w-4 h-4 accent-[var(--accent)]" />
+              <span>{{ t('signals.channelInApp') }}</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" v-model="alertChannels.email" class="w-4 h-4 accent-[var(--accent)]" />
+              <span>{{ t('signals.channelEmail') }}</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" v-model="alertChannels.webhook" class="w-4 h-4 accent-[var(--accent)]" />
+              <span>{{ t('signals.channelWebhook') }}</span>
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" v-model="alertChannels.telegram" class="w-4 h-4 accent-[var(--accent)]" />
+              <span>{{ t('signals.channelTelegram') }}</span>
+            </label>
+          </div>
+          <div class="mini-card p-4 space-y-2">
+            <div class="text-xs text-muted uppercase tracking-wide">{{ t('signals.alertPreview') }}</div>
+            <div class="text-sm font-medium">
+              {{ alertForm.symbol }} | {{ alertForm.interval }}
+            </div>
+            <div class="text-xs text-muted">{{ t(conditionKeyMap[alertForm.condition]) }}</div>
+            <div class="text-xs text-muted">
+              {{ t('signals.alertPriority') }}: {{ t(`common.${alertForm.priority}`) }} · {{ t('signals.alertExpiry') }}: {{ alertForm.expiry }}
+            </div>
+            <div class="text-xs text-muted">
+              {{ t('signals.alertChannels') }}: {{ selectedChannelLabels.join(' / ') || '--' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <button class="button-ghost" @click="closeAlertModal">{{ t('common.cancel') }}</button>
+        <button class="button" @click="saveAlert">{{ t('signals.saveAlert') }}</button>
+      </template>
+    </Modal>
   </section>
 </template>
 
@@ -90,6 +275,8 @@ import FilterGroup from '../components/common/FilterGroup.vue';
 import StatusTag from '../components/common/StatusTag.vue';
 import Skeleton from '../components/common/Skeleton.vue';
 import EmptyState from '../components/common/EmptyState.vue';
+import CardSection from '../components/common/CardSection.vue';
+import Modal from '../components/common/Modal.vue';
 
 const { t } = useI18n();
 
@@ -109,6 +296,7 @@ const directionOptions = computed(() => [
 ]);
 
 const levelOptions = ['1m', '5m', '15m'];
+const alertSymbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT'];
 
 const confidenceOptions = computed(() => [
   { label: '>0.7', value: '0.7' },
@@ -123,6 +311,109 @@ const signalFeed = ref([
   { tag: 'buy', code: 'B2', title: 'SOL/USDT | 1m', metaKey: 'signals.meta.strokeBreakout', time: '01:15', priority: 'medium', confidence: '0.62', expires: '3m', level: '1m' },
   { tag: 'sell', code: 'S3', title: 'ADA/USDT | 5m', metaKey: 'signals.meta.divergenceSellPoint', time: '03:20', priority: 'high', confidence: '0.75', expires: '10m', level: '5m' },
 ]);
+
+const showAlertModal = ref(false);
+
+const conditionKeyMap = {
+  hubBreakout: 'signals.ruleHubBreakout',
+  weakDivergence: 'signals.ruleWeakDivergence',
+  trendShift: 'signals.ruleTrendShift',
+};
+
+const conditionOptions = [
+  { value: 'hubBreakout', labelKey: 'signals.ruleHubBreakout' },
+  { value: 'weakDivergence', labelKey: 'signals.ruleWeakDivergence' },
+  { value: 'trendShift', labelKey: 'signals.ruleTrendShift' },
+];
+
+const priorityOptions = ['high', 'medium', 'low'];
+
+const expiryOptions = [
+  { value: '15m', label: '15m' },
+  { value: '1h', label: '1h' },
+  { value: '4h', label: '4h' },
+];
+
+const alertForm = reactive({
+  name: '',
+  symbol: 'BTC/USDT',
+  interval: '15m',
+  condition: 'hubBreakout',
+  priority: 'high',
+  expiry: '4h',
+});
+
+const alertChannels = reactive({
+  inApp: true,
+  email: true,
+  webhook: false,
+  telegram: false,
+});
+
+const selectedChannelLabels = computed(() => {
+  const labels = [];
+  if (alertChannels.inApp) labels.push(t('signals.channelInApp'));
+  if (alertChannels.email) labels.push(t('signals.channelEmail'));
+  if (alertChannels.webhook) labels.push(t('signals.channelWebhook'));
+  if (alertChannels.telegram) labels.push(t('signals.channelTelegram'));
+  return labels;
+});
+
+const alertRules = ref([
+  { id: 'rule-1', symbol: 'BTC/USDT', interval: '15m', conditionKey: 'signals.ruleHubBreakout', priority: 'high', enabled: true },
+  { id: 'rule-2', symbol: 'ETH/USDT', interval: '5m', conditionKey: 'signals.ruleWeakDivergence', priority: 'medium', enabled: true },
+  { id: 'rule-3', symbol: 'SOL/USDT', interval: '1m', conditionKey: 'signals.ruleTrendShift', priority: 'low', enabled: false },
+]);
+
+const channelSettings = reactive({
+  inApp: true,
+  email: true,
+  webhook: false,
+  telegram: false,
+});
+
+const getPriorityVariant = (priority) => {
+  if (priority === 'high') return 'danger';
+  if (priority === 'medium') return 'warning';
+  return 'neutral';
+};
+
+const openAlertModal = () => {
+  showAlertModal.value = true;
+};
+
+const closeAlertModal = () => {
+  showAlertModal.value = false;
+};
+
+const resetAlertForm = () => {
+  alertForm.name = '';
+  alertForm.symbol = 'BTC/USDT';
+  alertForm.interval = '15m';
+  alertForm.condition = 'hubBreakout';
+  alertForm.priority = 'high';
+  alertForm.expiry = '4h';
+  alertChannels.inApp = true;
+  alertChannels.email = true;
+  alertChannels.webhook = false;
+  alertChannels.telegram = false;
+};
+
+const saveAlert = () => {
+  alertRules.value.unshift({
+    id: `rule-${Date.now()}`,
+    symbol: alertForm.symbol,
+    interval: alertForm.interval,
+    conditionKey: conditionKeyMap[alertForm.condition],
+    priority: alertForm.priority,
+    enabled: true,
+    channels: { ...alertChannels },
+    name: alertForm.name,
+    expiry: alertForm.expiry,
+  });
+  closeAlertModal();
+  resetAlertForm();
+};
 
 const filteredSignals = computed(() => {
   let result = signalFeed.value.map(s => ({

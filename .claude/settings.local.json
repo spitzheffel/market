@@ -6,7 +6,11 @@
       "Bash(claude config:*)",
       "mcp__mcp_router__sequentialthinking",
       "Bash(npm install:*)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "WebSearch",
+      "mcp__mcp_router__resolve-library-id",
+      "mcp__mcp_router__query-docs",
+      "WebFetch(domain:github.com)"
     ]
   },
   "mcpServers": {

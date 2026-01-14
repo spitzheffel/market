@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: chan-lab-backend-test
+
+  # H2 Database Configuration for Testing
+  datasource:
+    url: jdbc:h2:mem:chanlab;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  # H2 Console (for debugging)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Disable Redis for testing
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+# Server Configuration
+server:
+  port: 8080
+
+# Exchange API Configuration (for testing without real API keys)
+exchange:
+  proxy:
+    enabled: true
+    type: HTTP
+    host: 127.0.0.1
+    port: 7890
+
+  binance:
+    enabled: true
+    api-key: ${BINANCE_API_KEY:test-api-key}
+    secret-key: ${BINANCE_SECRET_KEY:test-secret-key}
+    base-url: https://api.binance.com
+    ws-url: wss://stream.binance.com:9443/ws
+    rate-limit:
+      requests-per-second: 10
+      requests-per-minute: 1200
+
+  okx:
+    enabled: false
+
+  bybit:
+    enabled: false
+
+data-integrity:
+  auto-execute-backfill: false
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.lucance.boot.backend: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.h2: INFO

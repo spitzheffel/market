@@ -200,6 +200,29 @@
   letter-spacing: 0.6px;
 }
 
+.chan-app .top-filter-select {
+  appearance: none;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 6px 12px;
+  min-height: 32px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.chan-app .top-filter-select:hover {
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+.chan-app .top-filter-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
 .chan-app .button {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: #f8fafc;

@@ -122,7 +122,20 @@
       "segmentExhaustion": "线段衰竭",
       "strokeBreakout": "笔突破",
       "divergenceSellPoint": "背驰卖点"
-    }
+    },
+    "alertRules": "告警规则",
+    "alertRulesDesc": "按优先级信号触发通知",
+    "deliveryChannels": "通知渠道",
+    "deliveryChannelsDesc": "选择接收方式",
+    "enabled": "启用",
+    "disabled": "停用",
+    "ruleHubBreakout": "中枢突破",
+    "ruleWeakDivergence": "弱背驰",
+    "ruleTrendShift": "趋势切换",
+    "channelInApp": "站内",
+    "channelEmail": "邮件",
+    "channelWebhook": "Webhook",
+    "channelTelegram": "Telegram"
   },
   "strategy": {
     "title": "策略实验室",
@@ -140,7 +153,23 @@
       "multiLevelResonance": "多级别共振",
       "divergenceReversal": "背驰反转",
       "trendExtension": "趋势延伸"
-    }
+    },
+    "builder": "策略构建器",
+    "builderDesc": "保存模板前先草拟规则",
+    "name": "策略名称",
+    "primaryInterval": "主周期",
+    "entrySignal": "入场信号",
+    "exitRule": "出场规则",
+    "riskBudget": "风险预算(%)",
+    "maxHold": "最大持仓(小时)",
+    "confirmLevels": "确认级别",
+    "autoOptimize": "自动优化",
+    "entryBreakout": "突破",
+    "entryPullback": "回抽",
+    "exitDivergence": "背驰",
+    "exitTrail": "跟踪止盈",
+    "saveDraft": "保存草稿",
+    "simulate": "快速模拟"
   },
   "backtest": {
     "title": "回测",
@@ -160,7 +189,19 @@
       "btc1mThirdBuy": "BTC-1m-三买",
       "eth5mBreakout": "ETH-5m-突破",
       "sol15mBacktest": "SOL-15m-回测"
-    }
+    },
+    "viewReport": "查看报告",
+    "report": "回测报告",
+    "reportDesc": "选择任务查看摘要",
+    "reportFor": "报告对象",
+    "roi": "收益率",
+    "winRate": "胜率",
+    "profitFactor": "盈亏比",
+    "maxDrawdown": "最大回撤",
+    "tradeCount": "交易次数",
+    "avgHold": "平均持仓",
+    "equityCurve": "资金曲线",
+    "equityCurveDesc": "原型示意曲线"
   },
   "chart": {
     "title": "图表分析",
@@ -183,7 +224,7 @@
     "close": "收",
     "low": "低",
     "high": "高",
-    "demoNote": "当前为示例数据，周期切换暂不影响图表"
+    "demoNote": "示例数据：切换周期展示模拟样本"
   },
   "autoTrade": {
     "title": "自动交易",
@@ -244,7 +285,19 @@
     "noOrders": "暂无委托",
     "noOrdersDesc": "当前没有挂单",
     "noTrades": "暂无成交",
-    "noTradesDesc": "当前没有成交记录"
+    "noTradesDesc": "当前没有成交记录",
+    "executionRules": "执行规则",
+    "executionRulesDesc": "实盘执行边界",
+    "execution": "执行",
+    "risk": "风险",
+    "safety": "安全",
+    "maxPositions": "最大持仓数",
+    "maxExposure": "最大敞口",
+    "orderCooldown": "下单冷却(秒)",
+    "slippageLimit": "滑点限制",
+    "autoHedge": "自动对冲",
+    "killSwitch": "紧急停止",
+    "killSwitchDesc": "关闭自动交易并撤单"
   },
   "engine": {
     "title": "缠论引擎",

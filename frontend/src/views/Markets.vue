@@ -171,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
@@ -189,7 +189,7 @@ const loading = ref(false);
 const searchQuery = ref('');
 
 // 顶部筛选器
-const exchangeOptions = ['Binance', 'OKX', 'Bybit', 'Coinbase'];
+const exchangeOptions = ['Binance', 'OKX', 'Bybit'];
 const topFilters = reactive({
   exchange: '',
   marketType: '',
@@ -210,9 +210,6 @@ const typeOptions = [
 
 const intervalOptions = ['1m', '5m', '15m'];
 
-// Add "All" option for interval filter
-const intervalFilterOptions = [{ value: '', label: 'all' }, ...intervalOptions.map(v => ({ value: v, label: v }))];
-
 const sortOptions = [
   { value: 'change' },
   { value: 'volume' },
@@ -220,13 +217,45 @@ const sortOptions = [
 ];
 
 const markets = ref([
-  { pair: 'BTC/USDT', last: '67,420.5', change: '+2.4', volume: '1.1B', volatility: '2.8%', interval: '1m', signal: 'buy', type: 'spot' },
-  { pair: 'ETH/USDT', last: '3,492.1', change: '+1.2', volume: '620M', volatility: '2.1%', interval: '1m', signal: 'wait', type: 'spot' },
-  { pair: 'SOL/USDT', last: '142.8', change: '+0.3', volume: '180M', volatility: '3.4%', interval: '5m', signal: 'buy', type: 'spot' },
-  { pair: 'BNB/USDT', last: '612.4', change: '-0.9', volume: '95M', volatility: '1.7%', interval: '15m', signal: 'sell', type: 'spot' },
-  { pair: 'BTCUSDT', last: '67,450.0', change: '+2.5', volume: '2.3B', volatility: '3.1%', interval: '1m', signal: 'buy', type: 'futures' },
-  { pair: 'ETHUSDT', last: '3,495.0', change: '+1.3', volume: '1.2B', volatility: '2.5%', interval: '5m', signal: 'wait', type: 'futures' },
+  { pair: 'BTC/USDT', last: '67,420.5', change: '+2.4', volume: '1.1B', volatility: '2.8%', interval: '1m', signal: 'buy', type: 'spot', exchange: 'Binance' },
+  { pair: 'ETH/USDT', last: '3,492.1', change: '+1.2', volume: '620M', volatility: '2.1%', interval: '1m', signal: 'wait', type: 'spot', exchange: 'Binance' },
+  { pair: 'SOL/USDT', last: '142.8', change: '+0.3', volume: '180M', volatility: '3.4%', interval: '5m', signal: 'buy', type: 'spot', exchange: 'OKX' },
+  { pair: 'BNB/USDT', last: '612.4', change: '-0.9', volume: '95M', volatility: '1.7%', interval: '15m', signal: 'sell', type: 'spot', exchange: 'Binance' },
+  { pair: 'BTCUSDT', last: '67,450.0', change: '+2.5', volume: '2.3B', volatility: '3.1%', interval: '1m', signal: 'buy', type: 'futures', exchange: 'Bybit' },
+  { pair: 'ETHUSDT', last: '3,495.0', change: '+1.3', volume: '1.2B', volatility: '2.5%', interval: '5m', signal: 'wait', type: 'futures', exchange: 'OKX' },
 ]);
+
+const normalizeTypeFilter = (value) => value || 'all';
+const normalizeTypeSelect = (value) => (value === 'all' ? '' : value);
+const normalizeInterval = (value) => value || '';
+
+watch(() => topFilters.marketType, (value) => {
+  const mapped = normalizeTypeFilter(value);
+  if (filters.type !== mapped) {
+    filters.type = mapped;
+  }
+});
+
+watch(() => filters.type, (value) => {
+  const mapped = normalizeTypeSelect(value);
+  if (topFilters.marketType !== mapped) {
+    topFilters.marketType = mapped;
+  }
+});
+
+watch(() => topFilters.defaultInterval, (value) => {
+  const mapped = normalizeInterval(value);
+  if (filters.interval !== mapped) {
+    filters.interval = mapped;
+  }
+});
+
+watch(() => filters.interval, (value) => {
+  const mapped = normalizeInterval(value);
+  if (topFilters.defaultInterval !== mapped) {
+    topFilters.defaultInterval = mapped;
+  }
+});
 
 // 计算信号标签
 const getSignalLabel = (signal) => {
@@ -257,9 +286,7 @@ const filteredMarkets = computed(() => {
 
   // 顶部筛选器：交易所过滤
   if (topFilters.exchange) {
-    // 这里可以根据实际数据源字段进行过滤
-    // 示例：假设数据中有 exchange 字段
-    // result = result.filter((m) => m.exchange === topFilters.exchange);
+    result = result.filter((m) => m.exchange === topFilters.exchange);
   }
 
   // 顶部筛选器：合约类型过滤
@@ -316,10 +343,18 @@ const refresh = async () => {
   loading.value = false;
 };
 
+const resolveChartInterval = (row) => {
+  if (filters.interval) return filters.interval;
+  if (topFilters.defaultInterval) return topFilters.defaultInterval;
+  return row.interval;
+};
+
 const goToChart = (symbol) => {
+  const row = filteredMarkets.value.find((item) => item.pair === symbol);
+  const interval = row ? resolveChartInterval(row) : filters.interval || topFilters.defaultInterval || '1m';
   router.push({
     path: '/chart',
-    query: { symbol }
+    query: { symbol, interval }
   });
 };
 </script>

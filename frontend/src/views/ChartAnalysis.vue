@@ -176,7 +176,7 @@ const showOptions = ref({
 
 // 当前图表数据
 const currentChartData = computed(() => {
-  return getChartData(selectedSymbol.value);
+  return getChartData(selectedSymbol.value, selectedInterval.value);
 });
 
 // 监听标的变化

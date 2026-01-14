@@ -122,7 +122,20 @@
       "segmentExhaustion": "Segment exhaustion",
       "strokeBreakout": "Stroke breakout",
       "divergenceSellPoint": "Divergence sell point"
-    }
+    },
+    "alertRules": "Alert Rules",
+    "alertRulesDesc": "Notify on prioritized signals",
+    "deliveryChannels": "Delivery Channels",
+    "deliveryChannelsDesc": "Select how you receive alerts",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "ruleHubBreakout": "Hub breakout",
+    "ruleWeakDivergence": "Weak divergence",
+    "ruleTrendShift": "Trend shift",
+    "channelInApp": "In-app",
+    "channelEmail": "Email",
+    "channelWebhook": "Webhook",
+    "channelTelegram": "Telegram"
   },
   "strategy": {
     "title": "Strategy Lab",
@@ -140,7 +153,23 @@
       "multiLevelResonance": "Multi-level resonance",
       "divergenceReversal": "Divergence reversal",
       "trendExtension": "Trend extension"
-    }
+    },
+    "builder": "Strategy Builder",
+    "builderDesc": "Draft rules before saving as templates",
+    "name": "Strategy Name",
+    "primaryInterval": "Primary Interval",
+    "entrySignal": "Entry Signal",
+    "exitRule": "Exit Rule",
+    "riskBudget": "Risk Budget (%)",
+    "maxHold": "Max Hold (hrs)",
+    "confirmLevels": "Confirm Levels",
+    "autoOptimize": "Auto Optimize",
+    "entryBreakout": "Breakout",
+    "entryPullback": "Pullback",
+    "exitDivergence": "Divergence",
+    "exitTrail": "Trail Stop",
+    "saveDraft": "Save Draft",
+    "simulate": "Simulate"
   },
   "backtest": {
     "title": "Backtest",
@@ -160,7 +189,19 @@
       "btc1mThirdBuy": "BTC-1m-3rd Buy",
       "eth5mBreakout": "ETH-5m-Breakout",
       "sol15mBacktest": "SOL-15m-Backtest"
-    }
+    },
+    "viewReport": "View Report",
+    "report": "Report Summary",
+    "reportDesc": "Select a task to view summary",
+    "reportFor": "Report for",
+    "roi": "ROI",
+    "winRate": "Win Rate",
+    "profitFactor": "Profit Factor",
+    "maxDrawdown": "Max Drawdown",
+    "tradeCount": "Trades",
+    "avgHold": "Avg Hold",
+    "equityCurve": "Equity Curve",
+    "equityCurveDesc": "Mock curve for prototype"
   },
   "chart": {
     "title": "Chart Analysis",
@@ -183,7 +224,7 @@
     "close": "Close",
     "low": "Low",
     "high": "High",
-    "demoNote": "Demo data only - interval changes don't affect chart yet"
+    "demoNote": "Demo data only - interval switch uses mock samples"
   },
   "autoTrade": {
     "title": "Auto Trade",
@@ -244,7 +285,19 @@
     "noOrders": "No Orders",
     "noOrdersDesc": "No open orders",
     "noTrades": "No Trades",
-    "noTradesDesc": "No trade history"
+    "noTradesDesc": "No trade history",
+    "executionRules": "Execution Rules",
+    "executionRulesDesc": "Guardrails for live trading",
+    "execution": "Execution",
+    "risk": "Risk",
+    "safety": "Safety",
+    "maxPositions": "Max Positions",
+    "maxExposure": "Max Exposure",
+    "orderCooldown": "Order Cooldown (s)",
+    "slippageLimit": "Slippage Limit",
+    "autoHedge": "Auto Hedge",
+    "killSwitch": "Kill Switch",
+    "killSwitchDesc": "Disable all trading and cancel orders"
   },
   "engine": {
     "title": "Chan Engine",

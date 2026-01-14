@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: chan-lab-backend
+
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/chanlab
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 10000
+
+# Server Configuration
+server:
+  port: 8080
+
+# Exchange API Configuration
+exchange:
+  # Global Proxy Configuration
+  proxy:
+    enabled: ${PROXY_ENABLED:true}
+    type: ${PROXY_TYPE:HTTP}  # HTTP or SOCKS
+    host: ${PROXY_HOST:127.0.0.1}
+    port: ${PROXY_PORT:7890}
+    username: ${PROXY_USERNAME:}
+    password: ${PROXY_PASSWORD:}
+
+  # Binance Configuration
+  binance:
+    enabled: true
+    api-key: ${BINANCE_API_KEY:}
+    secret-key: ${BINANCE_SECRET_KEY:}
+    base-url: https://api.binance.com
+    ws-url: wss://stream.binance.com:9443/ws
+    rate-limit:
+      requests-per-second: 10
+      requests-per-minute: 1200
+
+  # OKX Configuration (Optional)
+  okx:
+    enabled: false
+    api-key: ${OKX_API_KEY:}
+    secret-key: ${OKX_SECRET_KEY:}
+    passphrase: ${OKX_PASSPHRASE:}
+    base-url: https://www.okx.com
+
+  # Bybit Configuration (Optional)
+  bybit:
+    enabled: false
+    api-key: ${BYBIT_API_KEY:}
+    secret-key: ${BYBIT_SECRET_KEY:}
+    base-url: https://api.bybit.com
+
+data-integrity:
+  auto-execute-backfill: false
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.lucance.boot.backend: DEBUG
+    org.hibernate.SQL: INFO
+    okhttp3.OkHttpClient: INFO

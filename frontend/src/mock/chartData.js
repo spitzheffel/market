@@ -1,14 +1,26 @@
 // Mock K线数据和缠论标注数据
 
+const intervalToMinutes = {
+  '1m': 1,
+  '5m': 5,
+  '15m': 15,
+  '1h': 60,
+  '4h': 240,
+  '1d': 1440,
+};
+
+const resolveIntervalMinutes = (interval) => intervalToMinutes[interval] || 1;
+
 // 生成K线数据 (OHLCV)
-function generateKlineData(basePrice = 67000, count = 120) {
+function generateKlineData(basePrice = 67000, count = 120, intervalMinutes = 1) {
   const data = [];
-  const startTime = Date.now() - count * 60000; // 1分钟K线
+  const intervalMs = intervalMinutes * 60000;
+  const startTime = Date.now() - count * intervalMs;
   let price = basePrice;
 
   for (let i = 0; i < count; i++) {
-    const timestamp = startTime + i * 60000;
-    const volatility = 0.002; // 0.2% 波动
+    const timestamp = startTime + i * intervalMs;
+    const volatility = Math.min(0.02, 0.002 * Math.sqrt(intervalMinutes)); // 随周期放大波动
     const trend = Math.sin(i / 10) * 0.001; // 添加趋势
 
     const change = (Math.random() - 0.5) * volatility + trend;
@@ -173,8 +185,9 @@ function generateTradingPoints(fenxingData, biData) {
 }
 
 // 生成完整的图表数据
-export function generateChartData(symbol = 'BTC/USDT', basePrice = 67000) {
-  const klineData = generateKlineData(basePrice, 120);
+export function generateChartData(symbol = 'BTC/USDT', basePrice = 67000, interval = '1m') {
+  const intervalMinutes = resolveIntervalMinutes(interval);
+  const klineData = generateKlineData(basePrice, 120, intervalMinutes);
   const fenxingData = generateFenxingData(klineData);
   const biData = generateBiData(fenxingData);
   const xianduanData = generateXianduanData(biData);
@@ -183,7 +196,7 @@ export function generateChartData(symbol = 'BTC/USDT', basePrice = 67000) {
 
   return {
     symbol,
-    interval: '1m',
+    interval,
     klineData,
     chanTheory: {
       fenxing: fenxingData,
@@ -196,14 +209,23 @@ export function generateChartData(symbol = 'BTC/USDT', basePrice = 67000) {
 }
 
 // 预生成几个常用标的的数据
+const buildMockData = (symbol, basePrice) => {
+  const dataByInterval = {};
+  Object.keys(intervalToMinutes).forEach((interval) => {
+    dataByInterval[interval] = generateChartData(symbol, basePrice, interval);
+  });
+  return dataByInterval;
+};
+
 export const mockChartData = {
-  'BTC/USDT': generateChartData('BTC/USDT', 67000),
-  'ETH/USDT': generateChartData('ETH/USDT', 3500),
-  'SOL/USDT': generateChartData('SOL/USDT', 142),
-  'BNB/USDT': generateChartData('BNB/USDT', 612)
+  'BTC/USDT': buildMockData('BTC/USDT', 67000),
+  'ETH/USDT': buildMockData('ETH/USDT', 3500),
+  'SOL/USDT': buildMockData('SOL/USDT', 142),
+  'BNB/USDT': buildMockData('BNB/USDT', 612)
 };
 
 // 获取指定标的的图表数据
-export function getChartData(symbol) {
-  return mockChartData[symbol] || mockChartData['BTC/USDT'];
+export function getChartData(symbol, interval = '1m') {
+  const dataByInterval = mockChartData[symbol] || mockChartData['BTC/USDT'];
+  return dataByInterval[interval] || dataByInterval['1m'];
 }
