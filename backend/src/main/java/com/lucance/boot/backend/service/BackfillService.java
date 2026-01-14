@@ -36,15 +36,22 @@ public class BackfillService {
     // 最大重试次数
     private static final int MAX_RETRY_COUNT = 3;
 
-    // 各周期对应的毫秒数
-    private static final java.util.Map<String, Long> INTERVAL_MS = java.util.Map.of(
-            "1m", 60_000L,
-            "5m", 300_000L,
-            "15m", 900_000L,
-            "30m", 1_800_000L,
-            "1h", 3_600_000L,
-            "4h", 14_400_000L,
-            "1d", 86_400_000L);
+    // 各周期对应的毫秒数（完整映射）
+    private static final java.util.Map<String, Long> INTERVAL_MS = java.util.Map.ofEntries(
+            java.util.Map.entry("1m", 60_000L),
+            java.util.Map.entry("3m", 180_000L),
+            java.util.Map.entry("5m", 300_000L),
+            java.util.Map.entry("15m", 900_000L),
+            java.util.Map.entry("30m", 1_800_000L),
+            java.util.Map.entry("1h", 3_600_000L),
+            java.util.Map.entry("2h", 7_200_000L),
+            java.util.Map.entry("4h", 14_400_000L),
+            java.util.Map.entry("6h", 21_600_000L),
+            java.util.Map.entry("8h", 28_800_000L),
+            java.util.Map.entry("12h", 43_200_000L),
+            java.util.Map.entry("1d", 86_400_000L),
+            java.util.Map.entry("3d", 259_200_000L),
+            java.util.Map.entry("1w", 604_800_000L));
 
     /**
      * 创建回补任务

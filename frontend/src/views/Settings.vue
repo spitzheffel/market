@@ -132,6 +132,79 @@
           </label>
         </div>
       </CardSection>
+
+      <!-- 回补任务 -->
+      <CardSection
+        :title="t('settings.backfillTask')"
+        :subtitle="t('settings.backfillTaskDesc')"
+        class="mini-card p-4"
+      >
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">
+                {{ t('settings.backfillSymbol') }}
+              </label>
+              <select v-model="backfillForm.symbol" class="setting-input w-full">
+                <option v-for="symbol in backfillSymbols" :key="symbol" :value="symbol">
+                  {{ symbol }}
+                </option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">
+                {{ t('settings.backfillInterval') }}
+              </label>
+              <select v-model="backfillForm.interval" class="setting-input w-full">
+                <option v-for="interval in backfillIntervals" :key="interval" :value="interval">
+                  {{ interval }}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">
+                {{ t('settings.backfillStart') }}
+              </label>
+              <input
+                v-model="backfillForm.startAt"
+                type="datetime-local"
+                class="setting-input w-full"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-muted uppercase tracking-wide">
+                {{ t('settings.backfillEnd') }}
+              </label>
+              <input
+                v-model="backfillForm.endAt"
+                type="datetime-local"
+                class="setting-input w-full"
+              />
+            </div>
+          </div>
+          <label class="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="backfillForm.autoExecute"
+              class="w-4 h-4 accent-[var(--accent)]"
+            />
+            <span>{{ t('settings.backfillAutoExecute') }}</span>
+          </label>
+          <div class="flex flex-wrap items-center gap-3">
+            <button class="button" :disabled="backfillSubmitting" @click="createBackfillTask">
+              {{ backfillSubmitting ? t('settings.backfillCreating') : t('settings.backfillCreate') }}
+            </button>
+            <span
+              v-if="backfillStatus.message"
+              :class="['text-xs', backfillStatus.type === 'error' ? 'text-danger' : 'text-success']"
+            >
+              {{ backfillStatus.message }}
+            </span>
+          </div>
+        </div>
+      </CardSection>
     </div>
   </section>
 </template>
@@ -139,6 +212,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from '../composables/useI18n';
+import { backfillApi } from '../api/market';
 import CardHeader from '../components/common/CardHeader.vue';
 import CardSection from '../components/common/CardSection.vue';
 import Skeleton from '../components/common/Skeleton.vue';
@@ -165,6 +239,57 @@ const dataSettings = reactive({
   syncInterval: '1m',
   autoSync: true
 });
+
+const backfillSymbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT'];
+const backfillIntervals = ['1m', '5m', '15m', '1h', '4h', '1d'];
+
+const formatLocalInput = (date) => {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const now = new Date();
+const backfillForm = reactive({
+  symbol: 'BTC/USDT',
+  interval: '1m',
+  startAt: formatLocalInput(new Date(now.getTime() - 60 * 60 * 1000)),
+  endAt: formatLocalInput(now),
+  autoExecute: false
+});
+const backfillSubmitting = ref(false);
+const backfillStatus = reactive({ type: '', message: '' });
+
+const createBackfillTask = async () => {
+  backfillStatus.type = '';
+  backfillStatus.message = '';
+
+  const startTime = new Date(backfillForm.startAt).getTime();
+  const endTime = new Date(backfillForm.endAt).getTime();
+  if (Number.isNaN(startTime) || Number.isNaN(endTime) || startTime >= endTime) {
+    backfillStatus.type = 'error';
+    backfillStatus.message = t('settings.backfillInvalidTime');
+    return;
+  }
+
+  backfillSubmitting.value = true;
+  try {
+    await backfillApi.createTask({
+      symbol: backfillForm.symbol,
+      interval: backfillForm.interval,
+      startTime,
+      endTime,
+      autoExecute: backfillForm.autoExecute,
+    });
+    backfillStatus.type = 'success';
+    backfillStatus.message = t('settings.backfillCreated');
+  } catch (error) {
+    console.error('Failed to create backfill task', error);
+    backfillStatus.type = 'error';
+    backfillStatus.message = t('settings.backfillError');
+  } finally {
+    backfillSubmitting.value = false;
+  }
+};
 
 const saveSettings = async () => {
   saving.value = true;

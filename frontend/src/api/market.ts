@@ -294,6 +294,7 @@ export const backfillApi = {
     interval: string
     startTime: number
     endTime: number
+    autoExecute?: boolean
   }): Promise<any> {
     const response = await apiClient.post('/api/backfill', data)
     return response.data
@@ -368,6 +369,16 @@ export const latencyStatsApi = {
   },
 
   /**
+   * 获取指定交易所和端点的统计
+   */
+  async getStats(exchange: string, endpoint: string): Promise<any> {
+    const response = await apiClient.get('/api/stats/latency/query', {
+      params: { exchange, endpoint }
+    })
+    return response.data
+  },
+
+  /**
    * 获取指定交易所的统计
    */
   async getStatsByExchange(exchange: string): Promise<any[]> {
@@ -404,7 +415,7 @@ export const exchangeConfigApi = {
    * 获取所有配置
    */
   async getAllConfigs(): Promise<any[]> {
-    const response = await apiClient.get('/api/exchange-config')
+    const response = await apiClient.get('/api/exchange-configs')
     return response.data
   },
 
@@ -412,7 +423,7 @@ export const exchangeConfigApi = {
    * 获取指定配置
    */
   async getConfig(name: string): Promise<any> {
-    const response = await apiClient.get(`/api/exchange-config/${name}`)
+    const response = await apiClient.get(`/api/exchange-configs/${name}`)
     return response.data
   },
 
@@ -420,7 +431,7 @@ export const exchangeConfigApi = {
    * 保存配置
    */
   async saveConfig(data: any): Promise<any> {
-    const response = await apiClient.post('/api/exchange-config', data)
+    const response = await apiClient.post('/api/exchange-configs', data)
     return response.data
   },
 
@@ -428,7 +439,7 @@ export const exchangeConfigApi = {
    * 更新配置
    */
   async updateConfig(name: string, data: any): Promise<any> {
-    const response = await apiClient.put(`/api/exchange-config/${name}`, data)
+    const response = await apiClient.put(`/api/exchange-configs/${name}`, data)
     return response.data
   },
 
@@ -436,7 +447,7 @@ export const exchangeConfigApi = {
    * 删除配置
    */
   async deleteConfig(name: string): Promise<void> {
-    await apiClient.delete(`/api/exchange-config/${name}`)
+    await apiClient.delete(`/api/exchange-configs/${name}`)
   }
 }
 

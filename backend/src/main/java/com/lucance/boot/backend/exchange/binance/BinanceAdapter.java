@@ -73,10 +73,10 @@ public class BinanceAdapter extends BaseHttpClient implements ExchangeAdapter {
             long startTime = System.currentTimeMillis();
             get("/api/v3/ping", null, Map.class);
             long latency = System.currentTimeMillis() - startTime;
-            return HealthStatus.healthy(latency);
+            return HealthStatus.healthy(EXCHANGE_NAME, latency);
         } catch (Exception e) {
             log.error("Health check failed", e);
-            return HealthStatus.unhealthy(e.getMessage());
+            return HealthStatus.unhealthy(EXCHANGE_NAME, e.getMessage());
         }
     }
 

@@ -1,6 +1,7 @@
 package com.lucance.boot.backend.chan;
 
 import com.lucance.boot.backend.chan.model.Fenxing;
+import com.lucance.boot.backend.chan.model.Fenxing.FenxingType;
 import com.lucance.boot.backend.chan.model.MergedKline;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,8 +52,8 @@ class FenxingIdentifierTest {
         List<Fenxing> result = fenxingIdentifier.identify(klines);
 
         assertEquals(1, result.size());
-        assertEquals(Fenxing.Type.TOP, result.get(0).getType());
-        assertEquals(1, result.get(0).getIndex());
+        assertEquals(FenxingType.TOP, result.get(0).getType());
+        assertEquals(1, result.get(0).getCenterIndex());
     }
 
     @Test
@@ -68,7 +69,7 @@ class FenxingIdentifierTest {
         List<Fenxing> result = fenxingIdentifier.identify(klines);
 
         assertEquals(1, result.size());
-        assertEquals(Fenxing.Type.BOTTOM, result.get(0).getType());
+        assertEquals(FenxingType.BOTTOM, result.get(0).getType());
     }
 
     @Test

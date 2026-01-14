@@ -30,7 +30,7 @@
 
       <!-- 示例提示 -->
       <div class="text-xs text-muted bg-[rgba(251,191,36,0.1)] px-3 py-1.5 rounded-full border border-[rgba(251,191,36,0.3)]">
-        <span class="text-[#fbbf24]">⚠</span> {{ t('chart.demoNote') }}
+        <span class="text-[#fbbf24]">&#9888;</span> {{ t('chart.demoNote') }}
       </div>
 
       <!-- 显示选项 -->
@@ -80,8 +80,14 @@
 
     <!-- 图表区域 -->
     <div class="chart-wrapper">
+      <div v-if="chartLoading" class="flex items-center justify-center h-full text-muted">
+        {{ t('chart.loading') }}
+      </div>
+      <div v-else-if="chartError" class="flex items-center justify-center h-full text-muted">
+        {{ chartError }}
+      </div>
       <ChanChart
-        v-if="currentChartData"
+        v-else-if="currentChartData"
         :chart-data="currentChartData"
         :show-fenxing="showOptions.fenxing"
         :show-bi="showOptions.bi"
@@ -90,7 +96,7 @@
         :show-trading-points="showOptions.tradingPoints"
       />
       <div v-else class="flex items-center justify-center h-full text-muted">
-        {{ t('chart.loading') }}
+        {{ t('common.empty') }}
       </div>
     </div>
 
@@ -131,41 +137,25 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import FilterGroup from '../components/common/FilterGroup.vue';
 import FilterPill from '../components/common/FilterPill.vue';
 import ChanChart from '../components/Chart/ChanChart.vue';
-import { getChartData } from '../mock/chartData';
+import { chanApi } from '../api/market';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
-// 可选标的
 const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT'];
-const selectedSymbol = ref('BTC/USDT');
-
-// 从 URL 参数初始化标的
-onMounted(() => {
-  const symbolFromQuery = route.query.symbol;
-  if (symbolFromQuery && symbols.includes(symbolFromQuery)) {
-    selectedSymbol.value = symbolFromQuery;
-  }
-
-  const intervalFromQuery = route.query.interval;
-  if (intervalFromQuery && intervals.includes(intervalFromQuery)) {
-    selectedInterval.value = intervalFromQuery;
-  }
-});
-
-// 可选周期
 const intervals = ['1m', '5m', '15m', '1h', '4h', '1d'];
+
+const selectedSymbol = ref('BTC/USDT');
 const selectedInterval = ref('1m');
 
-// 显示选项
 const showOptions = ref({
   fenxing: true,
   bi: true,
@@ -174,25 +164,144 @@ const showOptions = ref({
   tradingPoints: true
 });
 
-// 当前图表数据
-const currentChartData = computed(() => {
-  return getChartData(selectedSymbol.value, selectedInterval.value);
-});
+const currentChartData = ref(null);
+const chartLoading = ref(false);
+const chartError = ref('');
+let chartRequestId = 0;
 
-// 监听标的变化
-watch(selectedSymbol, (newSymbol) => {
-  const current = typeof route.query.symbol === 'string' ? route.query.symbol : '';
-  if (current === newSymbol) return;
-  router.replace({ query: { ...route.query, symbol: newSymbol } });
-});
+const resolveTimestamp = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') return value;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+};
 
-// 监听周期变化
-watch(selectedInterval, (newInterval) => {
-  const current = typeof route.query.interval === 'string' ? route.query.interval : '';
-  if (current === newInterval) return;
-  router.replace({ query: { ...route.query, interval: newInterval } });
-});
+const formatDate = (timestamp) => {
+  if (!timestamp) return '';
+  return new Date(timestamp).toLocaleString(undefined, {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const buildChartData = (symbol, interval, result) => {
+  const merged = result?.mergedKlines || [];
+  if (!merged.length) return null;
+
+  const indexMap = new Map(merged.map((item, idx) => [item.index ?? idx, idx]));
+  const resolveIndex = (value) => {
+    if (typeof value !== 'number') return 0;
+    return indexMap.get(value) ?? value;
+  };
+
+  const klineData = merged.map((item) => {
+    const timestamp = resolveTimestamp(item.timestamp ?? item.time);
+    return {
+      timestamp,
+      date: formatDate(timestamp),
+      open: String(item.open ?? ''),
+      high: String(item.high ?? ''),
+      low: String(item.low ?? ''),
+      close: String(item.close ?? ''),
+      volume: String(item.volume ?? '')
+    };
+  });
+
+  const fenxing = (result?.fenxings || []).map((fx) => ({
+    index: resolveIndex(fx.centerIndex ?? fx.index ?? 0),
+    type: fx.type === 'TOP' ? 'top' : 'bottom',
+    price: String(fx.price ?? ''),
+    timestamp: resolveTimestamp(fx.timestamp ?? fx.time)
+  }));
+
+  const bi = (result?.bis || []).map((stroke) => ({
+    startIndex: resolveIndex(stroke.startFenxing?.centerIndex ?? stroke.startIndex ?? 0),
+    endIndex: resolveIndex(stroke.endFenxing?.centerIndex ?? stroke.endIndex ?? 0),
+    startPrice: String(stroke.startPrice ?? ''),
+    endPrice: String(stroke.endPrice ?? ''),
+    direction: stroke.direction === 'UP' ? 'up' : 'down'
+  }));
+
+  return {
+    symbol,
+    interval,
+    klineData,
+    chanTheory: {
+      fenxing,
+      bi,
+      xianduan: [],
+      zhongshu: [],
+      tradingPoints: []
+    }
+  };
+};
+
+const syncRouteQuery = () => {
+  const currentSymbol = typeof route.query.symbol === 'string' ? route.query.symbol : '';
+  const currentInterval = typeof route.query.interval === 'string' ? route.query.interval : '';
+
+  if (currentSymbol === selectedSymbol.value && currentInterval === selectedInterval.value) {
+    return;
+  }
+
+  router.replace({
+    query: {
+      ...route.query,
+      symbol: selectedSymbol.value,
+      interval: selectedInterval.value
+    }
+  });
+};
+
+const fetchChartData = async () => {
+  const requestId = ++chartRequestId;
+  chartLoading.value = true;
+  chartError.value = '';
+
+  try {
+    const result = await chanApi.calculate({
+      symbol: selectedSymbol.value,
+      interval: selectedInterval.value,
+      limit: 200,
+      exchange: 'binance'
+    });
+
+    if (requestId !== chartRequestId) return;
+    currentChartData.value = buildChartData(selectedSymbol.value, selectedInterval.value, result);
+  } catch (error) {
+    if (requestId !== chartRequestId) return;
+    console.error('Failed to load chart data', error);
+    chartError.value = t('chart.loadFailed');
+    currentChartData.value = null;
+  } finally {
+    if (requestId === chartRequestId) {
+      chartLoading.value = false;
+    }
+  }
+};
+
+const initFromQuery = () => {
+  const symbolFromQuery = typeof route.query.symbol === 'string' ? route.query.symbol : '';
+  if (symbolFromQuery && symbols.includes(symbolFromQuery)) {
+    selectedSymbol.value = symbolFromQuery;
+  }
+
+  const intervalFromQuery = typeof route.query.interval === 'string' ? route.query.interval : '';
+  if (intervalFromQuery && intervals.includes(intervalFromQuery)) {
+    selectedInterval.value = intervalFromQuery;
+  }
+};
+
+initFromQuery();
+
+watch([selectedSymbol, selectedInterval], () => {
+  syncRouteQuery();
+  fetchChartData();
+}, { immediate: true });
 </script>
+
 
 <style scoped>
 .select-input {

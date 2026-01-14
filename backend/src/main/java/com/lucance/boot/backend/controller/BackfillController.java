@@ -36,7 +36,7 @@ public class BackfillController {
                 request.endTime());
 
         // 异步执行任务
-        if (Boolean.TRUE.equals(request.autoExecute())) {
+        if (!Boolean.FALSE.equals(request.autoExecute())) {
             backfillService.executeTaskAsync(task.getId());
         }
 

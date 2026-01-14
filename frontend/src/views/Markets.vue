@@ -7,7 +7,9 @@
             <label class="text-xs text-muted">{{ t('markets.dataSource') }}:</label>
             <select v-model="topFilters.exchange" class="top-filter-select">
               <option value="">{{ t('markets.all') }}</option>
-              <option v-for="ex in exchangeOptions" :key="ex" :value="ex">{{ ex }}</option>
+              <option v-for="ex in exchangeOptions" :key="ex" :value="ex">
+                {{ formatExchangeLabel(ex) }}
+              </option>
             </select>
           </div>
           <div class="flex items-center gap-2">
@@ -171,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
@@ -181,6 +183,7 @@ import FilterGroup from '../components/common/FilterGroup.vue';
 import DataTable from '../components/common/DataTable.vue';
 import StatusTag from '../components/common/StatusTag.vue';
 import VirtualList from '../components/common/VirtualList.vue';
+import { klineApi } from '../api/market';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -189,7 +192,17 @@ const loading = ref(false);
 const searchQuery = ref('');
 
 // 顶部筛选器
-const exchangeOptions = ['Binance', 'OKX', 'Bybit'];
+// 注意：当前后端仅编译启用 Binance，OKX/Bybit 待后续启用
+const exchangeOptions = ref(['binance']);
+const defaultExchange = ref('binance');
+const marketSymbols = [
+  { pair: 'BTC/USDT', type: 'spot' },
+  { pair: 'ETH/USDT', type: 'spot' },
+  { pair: 'SOL/USDT', type: 'spot' },
+  { pair: 'BNB/USDT', type: 'spot' },
+  { pair: 'XRP/USDT', type: 'spot' },
+  { pair: 'DOGE/USDT', type: 'spot' },
+];
 const topFilters = reactive({
   exchange: '',
   marketType: '',
@@ -216,14 +229,135 @@ const sortOptions = [
   { value: 'volatility' },
 ];
 
-const markets = ref([
-  { pair: 'BTC/USDT', last: '67,420.5', change: '+2.4', volume: '1.1B', volatility: '2.8%', interval: '1m', signal: 'buy', type: 'spot', exchange: 'Binance' },
-  { pair: 'ETH/USDT', last: '3,492.1', change: '+1.2', volume: '620M', volatility: '2.1%', interval: '1m', signal: 'wait', type: 'spot', exchange: 'Binance' },
-  { pair: 'SOL/USDT', last: '142.8', change: '+0.3', volume: '180M', volatility: '3.4%', interval: '5m', signal: 'buy', type: 'spot', exchange: 'OKX' },
-  { pair: 'BNB/USDT', last: '612.4', change: '-0.9', volume: '95M', volatility: '1.7%', interval: '15m', signal: 'sell', type: 'spot', exchange: 'Binance' },
-  { pair: 'BTCUSDT', last: '67,450.0', change: '+2.5', volume: '2.3B', volatility: '3.1%', interval: '1m', signal: 'buy', type: 'futures', exchange: 'Bybit' },
-  { pair: 'ETHUSDT', last: '3,495.0', change: '+1.3', volume: '1.2B', volatility: '2.5%', interval: '5m', signal: 'wait', type: 'futures', exchange: 'OKX' },
-]);
+const markets = ref([]);
+let marketRequestId = 0;
+
+const formatExchangeLabel = (value) => {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
+const toNumber = (value) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+};
+
+const formatPrice = (value) => {
+  if (!Number.isFinite(value)) return '--';
+  const digits = value >= 100 ? 2 : value >= 1 ? 4 : 6;
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(value);
+};
+
+const formatPercent = (value) => {
+  if (!Number.isFinite(value)) return '0.00';
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${value.toFixed(2)}`;
+};
+
+const formatVolume = (value) => {
+  if (!Number.isFinite(value) || value <= 0) return '--';
+  if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
+  if (value >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
+  return `${value.toFixed(0)}`;
+};
+
+const formatVolatility = (high, low, last) => {
+  if (!Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(last) || last === 0) {
+    return '--';
+  }
+  return `${(((high - low) / last) * 100).toFixed(2)}%`;
+};
+
+const resolveSignal = (changePercent) => {
+  if (changePercent >= 1.2) return 'buy';
+  if (changePercent <= -1.2) return 'sell';
+  return 'wait';
+};
+
+const resolveExchange = () => {
+  return topFilters.exchange || defaultExchange.value || 'binance';
+};
+
+const resolveRowInterval = () => {
+  return topFilters.defaultInterval || '1m';
+};
+
+const buildMarketRow = (item, ticker, exchange, interval) => {
+  const last = ticker ? toNumber(ticker.lastPrice) : 0;
+  const changePercent = ticker ? toNumber(ticker.priceChangePercent) : 0;
+  const high = ticker ? toNumber(ticker.high) : 0;
+  const low = ticker ? toNumber(ticker.low) : 0;
+  const baseVolume = ticker ? toNumber(ticker.volume) : 0;
+  const quoteVolume = last > 0 ? baseVolume * last : baseVolume;
+
+  return {
+    pair: item.pair,
+    last: formatPrice(last),
+    change: formatPercent(changePercent),
+    volume: formatVolume(quoteVolume),
+    volatility: formatVolatility(high, low, last),
+    interval,
+    signal: resolveSignal(changePercent),
+    type: item.type,
+    exchange
+  };
+};
+
+const loadExchanges = async () => {
+  try {
+    const response = await klineApi.getExchanges();
+    const available = response?.available || [];
+    if (available.length > 0) {
+      exchangeOptions.value = available;
+    }
+    if (response?.defaultExchange) {
+      defaultExchange.value = response.defaultExchange;
+    }
+  } catch (error) {
+    console.warn('Failed to load exchanges', error);
+  }
+
+  if (!exchangeOptions.value.length) {
+    exchangeOptions.value = ['binance'];
+  }
+};
+
+const fetchMarkets = async () => {
+  const requestId = ++marketRequestId;
+  loading.value = true;
+  const exchange = resolveExchange();
+  const interval = resolveRowInterval();
+
+  try {
+    const results = await Promise.all(
+      marketSymbols.map(async (item) => {
+        try {
+          const ticker = await klineApi.getTicker(item.pair, exchange);
+          return { item, ticker };
+        } catch (error) {
+          console.warn('Failed to load ticker', item.pair, error);
+          return { item, ticker: null };
+        }
+      })
+    );
+
+    if (requestId !== marketRequestId) return;
+    markets.value = results.map(({ item, ticker }) =>
+      buildMarketRow(item, ticker, exchange, interval)
+    );
+  } catch (error) {
+    if (requestId !== marketRequestId) return;
+    console.error('Failed to load markets', error);
+    markets.value = [];
+  } finally {
+    if (requestId === marketRequestId) {
+      loading.value = false;
+    }
+  }
+};
 
 const normalizeTypeFilter = (value) => value || 'all';
 const normalizeTypeSelect = (value) => (value === 'all' ? '' : value);
@@ -248,6 +382,13 @@ watch(() => topFilters.defaultInterval, (value) => {
   if (filters.interval !== mapped) {
     filters.interval = mapped;
   }
+  const resolved = value || '1m';
+  if (markets.value.length) {
+    markets.value = markets.value.map((item) => ({
+      ...item,
+      interval: resolved
+    }));
+  }
 });
 
 watch(() => filters.interval, (value) => {
@@ -255,6 +396,10 @@ watch(() => filters.interval, (value) => {
   if (topFilters.defaultInterval !== mapped) {
     topFilters.defaultInterval = mapped;
   }
+});
+
+watch(() => topFilters.exchange, () => {
+  fetchMarkets();
 });
 
 // 计算信号标签
@@ -275,6 +420,7 @@ const parseValue = (value) => {
   if (typeof value === 'number') return value;
   const str = String(value).replace(/[^0-9.-]/g, '');
   const num = parseFloat(str);
+  if (!Number.isFinite(num)) return 0;
   // 处理 B/M 单位
   if (String(value).includes('B')) return num * 1000;
   if (String(value).includes('M')) return num;
@@ -338,9 +484,7 @@ const volume24h = computed(() => {
 });
 
 const refresh = async () => {
-  loading.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  loading.value = false;
+  await fetchMarkets();
 };
 
 const resolveChartInterval = (row) => {
@@ -357,4 +501,9 @@ const goToChart = (symbol) => {
     query: { symbol, interval }
   });
 };
+
+onMounted(async () => {
+  await loadExchanges();
+  await fetchMarkets();
+});
 </script>

@@ -213,6 +213,7 @@
     "zhongshu": "中枢",
     "tradingPoints": "买卖点",
     "loading": "加载中...",
+    "loadFailed": "图表数据加载失败",
     "fenxingCount": "分型数量",
     "biCount": "笔数量",
     "xianduanCount": "线段数量",
@@ -224,7 +225,7 @@
     "close": "收",
     "low": "低",
     "high": "高",
-    "demoNote": "示例数据：切换周期展示模拟样本"
+    "demoNote": "后端数据已接入，线段/中枢/买卖点暂未开放"
   },
   "autoTrade": {
     "title": "自动交易",
@@ -429,6 +430,18 @@
     "telegram": "Telegram",
     "dataSync": "数据同步",
     "syncInterval": "同步间隔",
-    "autoSync": "自动同步"
+    "autoSync": "自动同步",
+    "backfillTask": "回补任务",
+    "backfillTaskDesc": "创建缺口数据回补任务。",
+    "backfillSymbol": "标的",
+    "backfillInterval": "周期",
+    "backfillStart": "开始时间",
+    "backfillEnd": "结束时间",
+    "backfillAutoExecute": "创建后自动执行",
+    "backfillCreate": "创建任务",
+    "backfillCreating": "创建中...",
+    "backfillCreated": "回补任务已创建",
+    "backfillInvalidTime": "开始时间需早于结束时间",
+    "backfillError": "创建回补任务失败"
   }
 }

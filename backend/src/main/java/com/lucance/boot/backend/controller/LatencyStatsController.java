@@ -37,11 +37,12 @@ public class LatencyStatsController {
 
     /**
      * 获取指定端点的统计
+     * 使用 query 参数以支持带 / 的 endpoint（如 /api/v3/klines）
      */
-    @GetMapping("/{exchange}/{endpoint}")
+    @GetMapping("/query")
     public ResponseEntity<LatencyStatsService.LatencyStats> getStats(
-            @PathVariable String exchange,
-            @PathVariable String endpoint) {
+            @RequestParam String exchange,
+            @RequestParam String endpoint) {
         return latencyStatsService.getStats(exchange, endpoint)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

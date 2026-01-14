@@ -30,11 +30,25 @@ public class EncryptionUtil {
     private static final int ITERATION_COUNT = 65536;
     private static final String SECRET_KEY_ALGORITHM = "PBKDF2WithHmacSHA256";
 
-    @Value("${encryption.secret-key:default-secret-key-change-in-production}")
+    private static final String DEFAULT_SECRET_KEY = "default-secret-key-change-in-production";
+    private static final String DEFAULT_SALT = "default-salt-change-me";
+
+    @Value("${encryption.secret-key:" + DEFAULT_SECRET_KEY + "}")
     private String secretKeyPassword;
 
-    @Value("${encryption.salt:default-salt-change-me}")
+    @Value("${encryption.salt:" + DEFAULT_SALT + "}")
     private String salt;
+
+    /**
+     * 启动时验证密钥配置
+     */
+    @jakarta.annotation.PostConstruct
+    public void validateKeyConfiguration() {
+        if (DEFAULT_SECRET_KEY.equals(secretKeyPassword) || DEFAULT_SALT.equals(salt)) {
+            log.warn("⚠️ SECURITY WARNING: Using default encryption key/salt! " +
+                    "Set 'encryption.secret-key' and 'encryption.salt' in application.yml for production.");
+        }
+    }
 
     /**
      * 加密字符串
