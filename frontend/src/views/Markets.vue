@@ -183,7 +183,7 @@ import FilterGroup from '../components/common/FilterGroup.vue';
 import DataTable from '../components/common/DataTable.vue';
 import StatusTag from '../components/common/StatusTag.vue';
 import VirtualList from '../components/common/VirtualList.vue';
-import { klineApi } from '../api/market';
+import { klineApi, marketCatalogApi } from '../api/market';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -195,7 +195,7 @@ const searchQuery = ref('');
 // 注意：当前后端仅编译启用 Binance，OKX/Bybit 待后续启用
 const exchangeOptions = ref(['binance']);
 const defaultExchange = ref('binance');
-const marketSymbols = [
+const defaultMarketSymbols = [
   { pair: 'BTC/USDT', type: 'spot' },
   { pair: 'ETH/USDT', type: 'spot' },
   { pair: 'SOL/USDT', type: 'spot' },
@@ -203,6 +203,7 @@ const marketSymbols = [
   { pair: 'XRP/USDT', type: 'spot' },
   { pair: 'DOGE/USDT', type: 'spot' },
 ];
+const marketSymbols = ref([...defaultMarketSymbols]);
 const topFilters = reactive({
   exchange: '',
   marketType: '',
@@ -325,6 +326,25 @@ const loadExchanges = async () => {
   }
 };
 
+const loadSymbols = async () => {
+  try {
+    const symbols = await marketCatalogApi.getSymbols();
+    if (Array.isArray(symbols) && symbols.length) {
+      marketSymbols.value = symbols
+        .filter((item) => item?.symbol)
+        .map((item) => ({
+          pair: item.symbol,
+          type: item.type || 'spot'
+        }));
+      return;
+    }
+  } catch (error) {
+    console.warn('Failed to load symbols', error);
+  }
+
+  marketSymbols.value = [...defaultMarketSymbols];
+};
+
 const fetchMarkets = async () => {
   const requestId = ++marketRequestId;
   loading.value = true;
@@ -333,7 +353,7 @@ const fetchMarkets = async () => {
 
   try {
     const results = await Promise.all(
-      marketSymbols.map(async (item) => {
+      marketSymbols.value.map(async (item) => {
         try {
           const ticker = await klineApi.getTicker(item.pair, exchange);
           return { item, ticker };
@@ -504,6 +524,7 @@ const goToChart = (symbol) => {
 
 onMounted(async () => {
   await loadExchanges();
+  await loadSymbols();
   await fetchMarkets();
 });
 </script>

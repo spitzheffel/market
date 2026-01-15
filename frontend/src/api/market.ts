@@ -57,14 +57,16 @@ export interface Fenxing {
   confirmed: boolean
 }
 
-// 笔接口
+// 笔接口（后端返回时间戳，前端需转换为索引）
 export interface Bi {
   id: string
   direction: 'UP' | 'DOWN'
-  startIndex: number
-  endIndex: number
+  startFenxing?: { centerIndex: number }
+  endFenxing?: { centerIndex: number }
   startPrice: string
   endPrice: string
+  startTime: number
+  endTime: number
   klineCount: number
 }
 
@@ -73,6 +75,57 @@ export interface ChanResult {
   mergedKlines: any[]
   fenxings: Fenxing[]
   bis: Bi[]
+}
+
+// 线段接口
+export interface Xianduan {
+  id: string
+  direction: 'UP' | 'DOWN'
+  startPrice: string
+  endPrice: string
+  startTime: number
+  endTime: number
+  biCount: number
+  confirmed: boolean
+}
+
+// 中枢接口
+export interface Zhongshu {
+  id: string
+  level: 'BI' | 'XIANDUAN'
+  high: string
+  low: string
+  center: string
+  startTime: number
+  endTime: number
+  oscillations: number
+}
+
+// 买卖点接口
+export interface TradingPoint {
+  id: string
+  type: 'BUY' | 'SELL'
+  level: number
+  price: string
+  timestamp: number
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW'
+  reason: string
+}
+
+// 完整缠论计算结果
+export interface ChanResultFull {
+  mergedKlines: any[]
+  fenxings: Fenxing[]
+  bis: Bi[]
+  xianduans: Xianduan[]
+  zhongshus: Zhongshu[]
+  tradingPoints: TradingPoint[]
+}
+
+// 完整缠论分析响应（含K线和完整结果）
+export interface ChanAnalysisResponseFull {
+  klines: Kline[]
+  result: ChanResultFull
 }
 
 // 健康状态
@@ -176,6 +229,21 @@ export const chanApi = {
   },
 
   /**
+   * 完整分析（含K线和完整缠论结果）
+   */
+  async getAnalysisFull(params: {
+    symbol: string
+    interval: string
+    startTime?: number
+    endTime?: number
+    limit?: number
+    exchange?: string
+  }): Promise<ChanAnalysisResponseFull> {
+    const response = await apiClient.get('/api/chan/analysis', { params })
+    return response.data
+  },
+
+  /**
    * 获取分型
    */
   async getFenxings(params: {
@@ -210,6 +278,60 @@ export const chanApi = {
     exchange?: string
   }): Promise<Record<string, any>> {
     const response = await apiClient.get('/api/chan/stats', { params })
+    return response.data
+  },
+
+  /**
+   * 完整缠论计算（包含线段、中枢、买卖点）
+   */
+  async calculateFull(params: {
+    symbol: string
+    interval: string
+    startTime?: number
+    endTime?: number
+    limit?: number
+    exchange?: string
+  }): Promise<ChanResultFull> {
+    const response = await apiClient.get('/api/chan/calculate-full', { params })
+    return response.data
+  },
+
+  /**
+   * 获取线段
+   */
+  async getXianduans(params: {
+    symbol: string
+    interval: string
+    limit?: number
+    exchange?: string
+  }): Promise<Xianduan[]> {
+    const response = await apiClient.get('/api/chan/xianduans', { params })
+    return response.data
+  },
+
+  /**
+   * 获取中枢
+   */
+  async getZhongshus(params: {
+    symbol: string
+    interval: string
+    limit?: number
+    exchange?: string
+  }): Promise<Zhongshu[]> {
+    const response = await apiClient.get('/api/chan/zhongshus', { params })
+    return response.data
+  },
+
+  /**
+   * 获取买卖点
+   */
+  async getTradingPoints(params: {
+    symbol: string
+    interval: string
+    limit?: number
+    exchange?: string
+  }): Promise<TradingPoint[]> {
+    const response = await apiClient.get('/api/chan/trading-points', { params })
     return response.data
   }
 }

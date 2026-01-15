@@ -186,17 +186,39 @@ const formatDate = (timestamp) => {
   });
 };
 
-const buildChartData = (symbol, interval, result) => {
-  const merged = result?.mergedKlines || [];
-  if (!merged.length) return null;
+const buildChartData = (symbol, interval, klines, result) => {
+  if (!Array.isArray(klines) || klines.length === 0) return null;
 
-  const indexMap = new Map(merged.map((item, idx) => [item.index ?? idx, idx]));
-  const resolveIndex = (value) => {
-    if (typeof value !== 'number') return 0;
-    return indexMap.get(value) ?? value;
+  const merged = result?.mergedKlines || [];
+  const mergedByIndex = new Map(
+    merged.map((item) => [item.index ?? 0, item])
+  );
+  const rawIndexByTimestamp = new Map(
+    klines.map((item, idx) => [resolveTimestamp(item.timestamp ?? item.time), idx])
+  );
+
+  const resolveMergedIndex = (mergedIndex) => {
+    if (typeof mergedIndex !== 'number') return 0;
+    const mergedItem = mergedByIndex.get(mergedIndex);
+    if (!mergedItem) return mergedIndex;
+    const ts = resolveTimestamp(mergedItem.timestamp ?? mergedItem.time);
+    return rawIndexByTimestamp.get(ts) ?? mergedIndex;
   };
 
-  const klineData = merged.map((item) => {
+  // 根据时间戳查找kline索引
+  const findIndexByTime = (timestamp) => {
+    if (!timestamp) return 0;
+    const idx = rawIndexByTimestamp.get(timestamp);
+    if (idx !== undefined) return idx;
+    // 查找最近的
+    for (let i = 0; i < klines.length; i++) {
+      const klineTime = resolveTimestamp(klines[i].timestamp ?? klines[i].time);
+      if (klineTime >= timestamp) return i;
+    }
+    return klines.length - 1;
+  };
+
+  const klineData = klines.map((item) => {
     const timestamp = resolveTimestamp(item.timestamp ?? item.time);
     return {
       timestamp,
@@ -210,18 +232,44 @@ const buildChartData = (symbol, interval, result) => {
   });
 
   const fenxing = (result?.fenxings || []).map((fx) => ({
-    index: resolveIndex(fx.centerIndex ?? fx.index ?? 0),
+    index: resolveMergedIndex(fx.centerIndex ?? fx.index ?? 0),
     type: fx.type === 'TOP' ? 'top' : 'bottom',
     price: String(fx.price ?? ''),
     timestamp: resolveTimestamp(fx.timestamp ?? fx.time)
   }));
 
   const bi = (result?.bis || []).map((stroke) => ({
-    startIndex: resolveIndex(stroke.startFenxing?.centerIndex ?? stroke.startIndex ?? 0),
-    endIndex: resolveIndex(stroke.endFenxing?.centerIndex ?? stroke.endIndex ?? 0),
+    startIndex: resolveMergedIndex(stroke.startFenxing?.centerIndex ?? stroke.startIndex ?? 0),
+    endIndex: resolveMergedIndex(stroke.endFenxing?.centerIndex ?? stroke.endIndex ?? 0),
     startPrice: String(stroke.startPrice ?? ''),
     endPrice: String(stroke.endPrice ?? ''),
     direction: stroke.direction === 'UP' ? 'up' : 'down'
+  }));
+
+  // 线段：后端返回startTime/endTime时间戳
+  const xianduan = (result?.xianduans || []).map((xd) => ({
+    startIndex: findIndexByTime(xd.startTime),
+    endIndex: findIndexByTime(xd.endTime),
+    startPrice: String(xd.startPrice ?? ''),
+    endPrice: String(xd.endPrice ?? ''),
+    direction: xd.direction === 'UP' ? 'up' : 'down'
+  }));
+
+  // 中枢：后端返回startTime/endTime时间戳
+  const zhongshu = (result?.zhongshus || []).map((zs) => ({
+    startIndex: findIndexByTime(zs.startTime),
+    endIndex: findIndexByTime(zs.endTime),
+    high: String(zs.high ?? ''),
+    low: String(zs.low ?? ''),
+    center: String(zs.center ?? '')
+  }));
+
+  // 买卖点：后端返回timestamp时间戳
+  const tradingPoints = (result?.tradingPoints || []).map((pt) => ({
+    index: findIndexByTime(pt.timestamp),
+    price: String(pt.price ?? ''),
+    type: pt.type === 'BUY' ? 'buy' : 'sell',
+    level: pt.level ?? 1
   }));
 
   return {
@@ -231,9 +279,9 @@ const buildChartData = (symbol, interval, result) => {
     chanTheory: {
       fenxing,
       bi,
-      xianduan: [],
-      zhongshu: [],
-      tradingPoints: []
+      xianduan,
+      zhongshu,
+      tradingPoints
     }
   };
 };
@@ -261,7 +309,7 @@ const fetchChartData = async () => {
   chartError.value = '';
 
   try {
-    const result = await chanApi.calculate({
+    const analysis = await chanApi.getAnalysisFull({
       symbol: selectedSymbol.value,
       interval: selectedInterval.value,
       limit: 200,
@@ -269,7 +317,20 @@ const fetchChartData = async () => {
     });
 
     if (requestId !== chartRequestId) return;
-    currentChartData.value = buildChartData(selectedSymbol.value, selectedInterval.value, result);
+
+    const klines = analysis?.klines || [];
+    const chanData = analysis?.result || null;
+
+    currentChartData.value = buildChartData(
+      selectedSymbol.value,
+      selectedInterval.value,
+      klines,
+      chanData
+    );
+
+    if (!currentChartData.value) {
+      chartError.value = t('common.empty');
+    }
   } catch (error) {
     if (requestId !== chartRequestId) return;
     console.error('Failed to load chart data', error);
@@ -301,6 +362,7 @@ watch([selectedSymbol, selectedInterval], () => {
   fetchChartData();
 }, { immediate: true });
 </script>
+
 
 
 <style scoped>

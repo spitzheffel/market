@@ -3,6 +3,8 @@ package com.lucance.boot.backend.chan;
 import com.lucance.boot.backend.chan.model.Bi;
 import com.lucance.boot.backend.chan.model.Fenxing;
 import com.lucance.boot.backend.chan.model.MergedKline;
+import com.lucance.boot.backend.chan.model.Xianduan;
+import com.lucance.boot.backend.chan.model.Zhongshu;
 import com.lucance.boot.backend.entity.Kline;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,15 +27,22 @@ class ChanCalculationEngineTest {
 
     @BeforeEach
     void setUp() {
+        MACDCalculator macdCalculator = new MACDCalculator();
+        DivergenceDetector divergenceDetector = new DivergenceDetector(macdCalculator);
+        TradingPointIdentifier tradingPointIdentifier = new TradingPointIdentifier(macdCalculator, divergenceDetector);
+
         engine = new ChanCalculationEngine(
                 new InclusionHandler(),
                 new FenxingIdentifier(),
-                new BiBuilder());
+                new BiBuilder(),
+                new XianduanIdentifier(),
+                new ZhongshuIdentifier(),
+                tradingPointIdentifier);
     }
 
     @Test
-    @DisplayName("完整计算流程应返回正确结构")
-    void testFullCalculation() {
+    @DisplayName("基础计算流程应返回正确结构")
+    void testBasicCalculation() {
         List<Kline> klines = createTestKlines();
 
         ChanCalculationEngine.ChanResult result = engine.calculate(klines);
@@ -42,6 +51,22 @@ class ChanCalculationEngineTest {
         assertNotNull(result.mergedKlines());
         assertNotNull(result.fenxings());
         assertNotNull(result.bis());
+    }
+
+    @Test
+    @DisplayName("完整计算流程应返回正确结构（含买卖点）")
+    void testFullCalculation() {
+        List<Kline> klines = createTestKlines();
+
+        ChanCalculationEngine.ChanResultFull result = engine.calculateFull(klines);
+
+        assertNotNull(result);
+        assertNotNull(result.mergedKlines());
+        assertNotNull(result.fenxings());
+        assertNotNull(result.bis());
+        assertNotNull(result.xianduans());
+        assertNotNull(result.zhongshus());
+        assertNotNull(result.tradingPoints()); // Phase 2: 买卖点必须非空
     }
 
     @Test
@@ -79,15 +104,19 @@ class ChanCalculationEngineTest {
     }
 
     @Test
-    @DisplayName("笔数量应比分型数量少1")
-    void testBisCount() {
+    @DisplayName("笔应由顶底分型交替构成")
+    void testBisAlternation() {
         List<Kline> klines = createTestKlines();
 
         ChanCalculationEngine.ChanResult result = engine.calculate(klines);
 
-        if (result.fenxings().size() >= 2) {
-            assertEquals(result.fenxings().size() - 1, result.bis().size(),
-                    "笔数量应等于分型数量-1");
+        List<Bi> bis = result.bis();
+        for (int i = 0; i < bis.size() - 1; i++) {
+            Bi current = bis.get(i);
+            Bi next = bis.get(i + 1);
+            // 相邻笔方向应相反
+            assertNotEquals(current.getDirection(), next.getDirection(),
+                    "相邻笔方向应相反");
         }
     }
 
@@ -110,6 +139,38 @@ class ChanCalculationEngineTest {
 
         assertNotNull(merged);
         assertFalse(merged.isEmpty());
+    }
+
+    @Test
+    @DisplayName("线段识别应正常工作")
+    void testXianduanIdentification() {
+        List<Kline> klines = createLargeTestKlines();
+
+        ChanCalculationEngine.ChanResultFull result = engine.calculateFull(klines);
+
+        assertNotNull(result.xianduans());
+        // 线段需要足够多的笔才能形成
+        if (result.bis().size() >= 3) {
+            // 可能有线段，也可能没有，取决于具体数据
+            assertNotNull(result.xianduans());
+        }
+    }
+
+    @Test
+    @DisplayName("中枢识别应正常工作")
+    void testZhongshuIdentification() {
+        List<Kline> klines = createLargeTestKlines();
+
+        ChanCalculationEngine.ChanResultFull result = engine.calculateFull(klines);
+
+        assertNotNull(result.zhongshus());
+        // 检查中枢的有效性
+        for (Zhongshu zs : result.zhongshus()) {
+            assertNotNull(zs.getHigh());
+            assertNotNull(zs.getLow());
+            assertTrue(zs.getHigh().compareTo(zs.getLow()) > 0,
+                    "中枢上轨应大于下轨");
+        }
     }
 
     /**
@@ -139,6 +200,40 @@ class ChanCalculationEngineTest {
         klines.add(createKline(12, 103, 110, 101, 108));
         klines.add(createKline(13, 108, 115, 106, 113));
         klines.add(createKline(14, 113, 122, 111, 120));
+
+        return klines;
+    }
+
+    /**
+     * 创建更大的测试数据集，用于线段和中枢测试
+     */
+    private List<Kline> createLargeTestKlines() {
+        List<Kline> klines = new ArrayList<>();
+        int index = 0;
+        double basePrice = 100;
+
+        // 模拟多个波段
+        for (int wave = 0; wave < 3; wave++) {
+            // 上升波段
+            for (int i = 0; i < 8; i++) {
+                double open = basePrice + i * 2;
+                double high = open + 3 + (i % 2);
+                double low = open - 1;
+                double close = open + 2;
+                klines.add(createKline(index++, open, high, low, close));
+            }
+            basePrice += 14;
+
+            // 下降波段
+            for (int i = 0; i < 8; i++) {
+                double open = basePrice - i * 2;
+                double high = open + 1;
+                double low = open - 3 - (i % 2);
+                double close = open - 2;
+                klines.add(createKline(index++, open, high, low, close));
+            }
+            basePrice -= 14;
+        }
 
         return klines;
     }

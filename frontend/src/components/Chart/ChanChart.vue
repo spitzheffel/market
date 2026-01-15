@@ -327,10 +327,10 @@ const chartOption = computed(() => ({
       return `
         <div style="padding: 4px;">
           <div style="margin-bottom: 4px; font-weight: bold;">${dates.value[klineParam.dataIndex]}</div>
-          <div>${t('chart.open')}: ${data[1]}</div>
-          <div>${t('chart.close')}: ${data[2]}</div>
-          <div>${t('chart.low')}: ${data[3]}</div>
-          <div>${t('chart.high')}: ${data[4]}</div>
+          <div>${t('chart.open')}: ${data[0]}</div>
+          <div>${t('chart.close')}: ${data[1]}</div>
+          <div>${t('chart.low')}: ${data[2]}</div>
+          <div>${t('chart.high')}: ${data[3]}</div>
           ${volumeParam ? `<div>${t('chart.volume')}: ${volumeParam.data}</div>` : ''}
         </div>
       `;

@@ -184,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
@@ -195,6 +195,7 @@ import StatusTag from '../components/common/StatusTag.vue';
 import CardSection from '../components/common/CardSection.vue';
 import KpiStat from '../components/common/KpiStat.vue';
 import VirtualList from '../components/common/VirtualList.vue';
+import { klineApi, marketCatalogApi } from '../api/market';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -207,47 +208,147 @@ const filters = reactive({
   group: 'all',
 });
 
+const watchlistRaw = ref([]);
+
+const fallbackSymbols = [
+  { symbol: 'BTC/USDT', type: 'spot' },
+  { symbol: 'ETH/USDT', type: 'spot' },
+  { symbol: 'SOL/USDT', type: 'spot' },
+  { symbol: 'BNB/USDT', type: 'spot' },
+  { symbol: 'ADA/USDT', type: 'spot' },
+  { symbol: 'ARB/USDT', type: 'spot' },
+];
+
+const mainstreamSymbols = new Set(['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT']);
+
+const normalizeType = (type) => {
+  if (!type) return 'spot';
+  const lower = type.toLowerCase();
+  if (lower.includes('perp') || lower.includes('future')) return 'perpetual';
+  return lower.includes('spot') ? 'spot' : 'spot';
+};
+
+const resolveTagKeys = (symbol, typeKey) => {
+  const tags = [];
+  if (mainstreamSymbols.has(symbol)) {
+    tags.push('mainstream');
+  } else {
+    tags.push('watch');
+  }
+  tags.push(typeKey);
+  return tags;
+};
+
+const buildSubscriptions = (tagKeys, typeKey) => {
+  if (typeKey === 'perpetual') return ['1m', '5m', '15m'];
+  if (tagKeys.includes('mainstream')) return ['1m', '5m'];
+  return ['15m'];
+};
+
+const formatBias = (changePercent) => {
+  const safeChange = Number.isNaN(changePercent) ? 0 : changePercent;
+  const sign = safeChange > 0 ? '+' : '';
+  return `${sign}${safeChange.toFixed(2)}%`;
+};
+
+const getSignalFromChange = (changePercent) => {
+  if (changePercent >= 0.7) return 'buy';
+  if (changePercent <= -0.7) return 'sell';
+  return 'wait';
+};
+
+const buildWatchlistItem = (item, ticker) => {
+  const typeKey = normalizeType(item.type);
+  const tagKeys = resolveTagKeys(item.symbol, typeKey);
+  const changePercent = Number.parseFloat(ticker.priceChangePercent || '0');
+  const safeChange = Number.isNaN(changePercent) ? 0 : changePercent;
+
+  return {
+    pair: item.symbol,
+    tagKeys,
+    subs: buildSubscriptions(tagKeys, typeKey),
+    signal: getSignalFromChange(safeChange),
+    bias: formatBias(safeChange),
+  };
+};
+
+const groupCounts = computed(() => {
+  const counts = {
+    total: watchlistRaw.value.length,
+    mainstream: 0,
+    perpetual: 0,
+    watch: 0,
+  };
+
+  watchlistRaw.value.forEach((item) => {
+    if (item.tagKeys.includes('mainstream')) counts.mainstream += 1;
+    if (item.tagKeys.includes('perpetual')) counts.perpetual += 1;
+    if (item.tagKeys.includes('watch')) counts.watch += 1;
+  });
+
+  return counts;
+});
+
 const groupOptions = computed(() => [
-  { label: t('common.all'), value: 'all', count: 25 },
-  { label: t('watchlist.mainstream'), value: 'mainstream', count: 12 },
-  { label: t('watchlist.futures'), value: 'futures', count: 8 },
-  { label: t('watchlist.watch'), value: 'watch', count: 5 },
+  { label: t('common.all'), value: 'all', count: groupCounts.value.total },
+  { label: t('watchlist.mainstream'), value: 'mainstream', count: groupCounts.value.mainstream },
+  { label: t('watchlist.futures'), value: 'futures', count: groupCounts.value.perpetual },
+  { label: t('watchlist.watch'), value: 'watch', count: groupCounts.value.watch },
 ]);
 
 const groupSummaries = computed(() => [
-  { name: t('watchlist.mainstream'), count: 12, desc: t('watchlist.mainstreamDesc') },
-  { name: t('watchlist.futures'), count: 8, desc: t('watchlist.futuresDesc') },
-  { name: t('watchlist.watch'), count: 5, desc: t('watchlist.watchDesc') },
+  { name: t('watchlist.mainstream'), count: groupCounts.value.mainstream, desc: t('watchlist.mainstreamDesc') },
+  { name: t('watchlist.futures'), count: groupCounts.value.perpetual, desc: t('watchlist.futuresDesc') },
+  { name: t('watchlist.watch'), count: groupCounts.value.watch, desc: t('watchlist.watchDesc') },
 ]);
 
-// Mock 数据使用 tag key，在 computed 中翻译
-const watchlistRaw = ref([
-  { pair: 'ETH/USDT', tagKeys: ['mainstream', 'spot'], subs: ['1m', '5m'], signal: 'buy', bias: '+1.2%' },
-  { pair: 'SOL/USDT', tagKeys: ['mainstream', 'perpetual'], subs: ['5m', '15m'], signal: 'wait', bias: '+0.3%' },
-  { pair: 'BNB/USDT', tagKeys: ['mainstream', 'spot'], subs: ['1m'], signal: 'sell', bias: '-0.9%' },
-  { pair: 'ARB/USDT', tagKeys: ['watch'], subs: ['15m'], signal: 'wait', bias: '+0.1%' },
-]);
-
-// 响应式翻译标签
-const watchlist = computed(() => 
-  watchlistRaw.value.map(item => ({
+const watchlist = computed(() =>
+  watchlistRaw.value.map((item) => ({
     ...item,
-    tags: item.tagKeys.map(key => t(`watchlist.${key}`)),
+    tags: item.tagKeys.map((key) => t(`watchlist.${key}`)),
   }))
 );
 
-// 计算信号标签
 const getSignalLabel = (signal) => {
   return t(`signals.${signal}`);
 };
 
-// 为每个自选添加信号标签
 const watchlistWithLabels = computed(() => {
-  return watchlist.value.map(w => ({
-    ...w,
-    signalLabel: getSignalLabel(w.signal),
+  return watchlist.value.map((item) => ({
+    ...item,
+    signalLabel: getSignalLabel(item.signal),
   }));
 });
+
+const loadWatchlist = async () => {
+  loading.value = true;
+  try {
+    const symbols = await marketCatalogApi.getSymbols();
+    const symbolList = symbols.length ? symbols : fallbackSymbols;
+
+    const items = await Promise.all(
+      symbolList.map(async (item) => {
+        try {
+          const ticker = await klineApi.getTicker(item.symbol);
+          return buildWatchlistItem(item, ticker);
+        } catch (error) {
+          console.warn('Failed to load ticker for', item.symbol, error);
+          return null;
+        }
+      })
+    );
+
+    watchlistRaw.value = items.filter(Boolean);
+    selected.value = selected.value.filter((pair) => watchlistRaw.value.some((item) => item.pair === pair));
+  } catch (error) {
+    console.error('Failed to load watchlist', error);
+    watchlistRaw.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(loadWatchlist);
 
 const filteredWatchlist = computed(() => {
   let result = watchlistWithLabels.value;
@@ -255,20 +356,16 @@ const filteredWatchlist = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toUpperCase();
     result = result.filter(
-      (w) => w.pair.includes(query) || w.tags.some((t) => t.toUpperCase().includes(query))
+      (w) =>
+        w.pair.toUpperCase().includes(query) ||
+        w.tags.some((tag) => tag.toUpperCase().includes(query)) ||
+        w.tagKeys.some((tag) => tag.toUpperCase().includes(query))
     );
   }
 
   if (filters.group !== 'all') {
-    const groupMap = {
-      mainstream: t('watchlist.mainstream'),
-      futures: t('watchlist.perpetual'),
-      watch: t('watchlist.watch'),
-    };
-    const groupTag = groupMap[filters.group];
-    if (groupTag) {
-      result = result.filter((w) => w.tags.includes(groupTag));
-    }
+    const groupKey = filters.group === 'futures' ? 'perpetual' : filters.group;
+    result = result.filter((w) => w.tagKeys.includes(groupKey));
   }
 
   return result;

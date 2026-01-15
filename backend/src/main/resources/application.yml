@@ -74,6 +74,21 @@ exchange:
     secret-key: ${BYBIT_SECRET_KEY:}
     base-url: https://api.bybit.com
 
+market:
+  symbols:
+    - symbol: BTC/USDT
+      type: spot
+    - symbol: ETH/USDT
+      type: spot
+    - symbol: SOL/USDT
+      type: spot
+    - symbol: BNB/USDT
+      type: spot
+    - symbol: XRP/USDT
+      type: spot
+    - symbol: DOGE/USDT
+      type: spot
+
 data-integrity:
   auto-execute-backfill: false
 

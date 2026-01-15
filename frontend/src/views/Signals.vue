@@ -267,7 +267,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from '../composables/useI18n';
 import CardHeader from '../components/common/CardHeader.vue';
 import FilterPill from '../components/common/FilterPill.vue';
@@ -277,6 +277,7 @@ import Skeleton from '../components/common/Skeleton.vue';
 import EmptyState from '../components/common/EmptyState.vue';
 import CardSection from '../components/common/CardSection.vue';
 import Modal from '../components/common/Modal.vue';
+import { klineApi, marketCatalogApi } from '../api/market';
 
 const { t } = useI18n();
 
@@ -296,7 +297,7 @@ const directionOptions = computed(() => [
 ]);
 
 const levelOptions = ['1m', '5m', '15m'];
-const alertSymbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT'];
+const alertSymbols = ref([]);
 
 const confidenceOptions = computed(() => [
   { label: '>0.7', value: '0.7' },
@@ -304,13 +305,95 @@ const confidenceOptions = computed(() => [
   { label: t('common.all'), value: 'all' },
 ]);
 
-const signalFeed = ref([
-  { tag: 'buy', code: 'B1', title: 'BTC/USDT | 1m', metaKey: 'signals.meta.hubBreakout', time: '00:48', priority: 'high', confidence: '0.71', expires: '4m', level: '1m' },
-  { tag: 'wait', code: 'S2', title: 'ETH/USDT | 5m', metaKey: 'signals.meta.weakDivergence', time: '02:14', priority: 'medium', confidence: '0.56', expires: '12m', level: '5m' },
-  { tag: 'sell', code: 'S1', title: 'BNB/USDT | 15m', metaKey: 'signals.meta.segmentExhaustion', time: '04:02', priority: 'high', confidence: '0.68', expires: '28m', level: '15m' },
-  { tag: 'buy', code: 'B2', title: 'SOL/USDT | 1m', metaKey: 'signals.meta.strokeBreakout', time: '01:15', priority: 'medium', confidence: '0.62', expires: '3m', level: '1m' },
-  { tag: 'sell', code: 'S3', title: 'ADA/USDT | 5m', metaKey: 'signals.meta.divergenceSellPoint', time: '03:20', priority: 'high', confidence: '0.75', expires: '10m', level: '5m' },
-]);
+const signalFeed = ref([]);
+
+const fallbackSymbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT', 'ADA/USDT'];
+const signalMetaKeys = [
+  'signals.meta.hubBreakout',
+  'signals.meta.weakDivergence',
+  'signals.meta.segmentExhaustion',
+  'signals.meta.strokeBreakout',
+  'signals.meta.divergenceSellPoint',
+];
+
+const formatTime = (date) => {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+const getSignalTag = (changePercent) => {
+  if (changePercent >= 0.8) return 'buy';
+  if (changePercent <= -0.8) return 'sell';
+  return 'wait';
+};
+
+const getPriority = (absChange) => {
+  if (absChange >= 2) return 'high';
+  if (absChange >= 1) return 'medium';
+  return 'low';
+};
+
+const getExpires = (level) => {
+  const map = { '1m': '3m', '5m': '15m', '15m': '45m' };
+  return map[level] || '15m';
+};
+
+const buildSignal = (ticker, index) => {
+  const level = levelOptions[index % levelOptions.length];
+  const changePercent = Number.parseFloat(ticker.priceChangePercent || '0');
+  const absChange = Number.isNaN(changePercent) ? 0 : Math.abs(changePercent);
+  const safeChange = Number.isNaN(changePercent) ? 0 : changePercent;
+  const tag = getSignalTag(safeChange);
+  const confidence = Math.min(0.9, 0.55 + absChange / 10).toFixed(2);
+  const priority = getPriority(absChange);
+  const codePrefix = tag === 'buy' ? 'B' : tag === 'sell' ? 'S' : 'W';
+  const metaKey = signalMetaKeys[index % signalMetaKeys.length];
+
+  return {
+    tag,
+    code: `${codePrefix}${(index % 9) + 1}`,
+    title: `${ticker.symbol} | ${level}`,
+    metaKey,
+    time: formatTime(new Date()),
+    priority,
+    confidence,
+    expires: getExpires(level),
+    level,
+  };
+};
+
+const loadSignals = async () => {
+  loading.value = true;
+  try {
+    const symbols = await marketCatalogApi.getSymbols();
+    const symbolList = symbols.length ? symbols.map((item) => item.symbol) : fallbackSymbols;
+    alertSymbols.value = symbolList;
+    if (!alertSymbols.value.includes(alertForm.symbol)) {
+      alertForm.symbol = alertSymbols.value[0] || 'BTC/USDT';
+    }
+
+    const tickers = await Promise.all(
+      symbolList.slice(0, 12).map(async (symbol, index) => {
+        try {
+          const ticker = await klineApi.getTicker(symbol);
+          return buildSignal(ticker, index);
+        } catch (error) {
+          console.warn('Failed to load ticker for', symbol, error);
+          return null;
+        }
+      })
+    );
+
+    signalFeed.value = tickers.filter(Boolean);
+  } catch (error) {
+    console.error('Failed to load signals', error);
+    alertSymbols.value = fallbackSymbols;
+    signalFeed.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
 
 const showAlertModal = ref(false);
 
@@ -388,7 +471,7 @@ const closeAlertModal = () => {
 
 const resetAlertForm = () => {
   alertForm.name = '';
-  alertForm.symbol = 'BTC/USDT';
+  alertForm.symbol = alertSymbols.value[0] || 'BTC/USDT';
   alertForm.interval = '15m';
   alertForm.condition = 'hubBreakout';
   alertForm.priority = 'high';
@@ -415,31 +498,33 @@ const saveAlert = () => {
   resetAlertForm();
 };
 
+onMounted(loadSignals);
+
 const filteredSignals = computed(() => {
-  let result = signalFeed.value.map(s => ({
+  let result = signalFeed.value.map((s) => ({
     ...s,
     meta: t(s.metaKey),
     priorityLabel: t(`common.${s.priority}`),
     priorityVariant: s.priority === 'high' ? 'danger' : s.priority === 'medium' ? 'warning' : 'neutral',
   }));
 
-  // 方向过滤
+  // Direction filter
   if (filters.direction !== 'all') {
     result = result.filter((s) => s.tag === filters.direction);
   }
 
-  // 级别过滤
+  // Level filter
   if (filters.level) {
     result = result.filter((s) => s.level === filters.level);
   }
 
-  // 搜索过滤
+  // Search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toUpperCase();
     result = result.filter((s) => s.title.toUpperCase().includes(query) || s.meta.toUpperCase().includes(query));
   }
 
-  // 置信度过滤
+  // Confidence filter
   if (filters.confidence !== 'all') {
     const minConf = parseFloat(filters.confidence);
     result = result.filter((s) => parseFloat(s.confidence) >= minConf);
