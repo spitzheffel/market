@@ -148,6 +148,19 @@ export interface Ticker {
   priceChangePercent: string
 }
 
+export interface MarketSymbol {
+  symbol: string
+  type: string
+}
+
+export interface MarketSymbolInfo {
+  symbol: string
+  type: string
+  baseAsset: string
+  quoteAsset: string
+  exchange: string
+}
+
 /**
  * K线 API
  */
@@ -216,7 +229,7 @@ export const marketCatalogApi = {
   /**
    * 获取可用交易对列表
    */
-  async getSymbols(exchange: string = 'binance'): Promise<string[]> {
+  async getSymbols(exchange: string = 'binance'): Promise<MarketSymbol[]> {
     const response = await apiClient.get('/api/markets/symbols', {
       params: { exchange }
     })
@@ -226,7 +239,7 @@ export const marketCatalogApi = {
   /**
    * 获取交易对信息
    */
-  async getSymbolInfo(symbol: string, exchange: string = 'binance'): Promise<any> {
+  async getSymbolInfo(symbol: string, exchange: string = 'binance'): Promise<MarketSymbolInfo> {
     const response = await apiClient.get('/api/markets/symbol-info', {
       params: { symbol, exchange }
     })

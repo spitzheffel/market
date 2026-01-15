@@ -11,7 +11,10 @@
       "mcp__mcp_router__resolve-library-id",
       "mcp__mcp_router__query-docs",
       "WebFetch(domain:github.com)",
-      "Bash(time:*)"
+      "Bash(time:*)",
+      "Bash(mvn test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "mcpServers": {

@@ -35,6 +35,19 @@ public class MarketController {
         return ResponseEntity.ok(result.isEmpty() ? defaultSymbols() : result);
     }
 
+    @GetMapping("/symbol-info")
+    public ResponseEntity<MarketSymbolInfo> getSymbolInfo(
+            @RequestParam String symbol,
+            @RequestParam(defaultValue = "binance") String exchange) {
+        if (symbol == null || symbol.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String type = resolveSymbolType(symbol);
+        SymbolParts parts = parseSymbolParts(symbol);
+        return ResponseEntity.ok(new MarketSymbolInfo(symbol, type, parts.base(), parts.quote(), exchange));
+    }
+
     private List<MarketSymbol> defaultSymbols() {
         return List.of(
                 new MarketSymbol("BTC/USDT", "spot"),
@@ -52,6 +65,44 @@ public class MarketController {
         return type.toLowerCase();
     }
 
+    private String resolveSymbolType(String symbol) {
+        String normalized = symbol.trim().toUpperCase();
+        List<MarketProperties.SymbolConfig> symbols = marketProperties.getSymbols();
+        if (symbols != null) {
+            for (MarketProperties.SymbolConfig item : symbols) {
+                if (item == null || item.getSymbol() == null) {
+                    continue;
+                }
+                if (item.getSymbol().trim().toUpperCase().equals(normalized)) {
+                    return resolveType(item.getType());
+                }
+            }
+        }
+
+        for (MarketSymbol item : defaultSymbols()) {
+            if (item.symbol().trim().toUpperCase().equals(normalized)) {
+                return resolveType(item.type());
+            }
+        }
+
+        return "spot";
+    }
+
+    private SymbolParts parseSymbolParts(String symbol) {
+        String trimmed = symbol.trim();
+        String[] parts = trimmed.split("[/_-]", 2);
+        if (parts.length == 2) {
+            return new SymbolParts(parts[0], parts[1]);
+        }
+        return new SymbolParts(trimmed, "");
+    }
+
     public record MarketSymbol(String symbol, String type) {
+    }
+
+    public record MarketSymbolInfo(String symbol, String type, String baseAsset, String quoteAsset, String exchange) {
+    }
+
+    private record SymbolParts(String base, String quote) {
     }
 }

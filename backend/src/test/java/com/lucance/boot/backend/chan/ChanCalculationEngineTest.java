@@ -3,6 +3,7 @@ package com.lucance.boot.backend.chan;
 import com.lucance.boot.backend.chan.model.Bi;
 import com.lucance.boot.backend.chan.model.Fenxing;
 import com.lucance.boot.backend.chan.model.MergedKline;
+import com.lucance.boot.backend.chan.model.TradingPoint;
 import com.lucance.boot.backend.chan.model.Xianduan;
 import com.lucance.boot.backend.chan.model.Zhongshu;
 import com.lucance.boot.backend.entity.Kline;
@@ -80,7 +81,7 @@ class ChanCalculationEngineTest {
         result.tradingPoints().forEach(tp -> {
             assertNotNull(tp.getId(), "买卖点ID不能为空");
             assertNotNull(tp.getType(), "买卖点类型不能为空");
-            assertTrue(tp.getType().equals("BUY") || tp.getType().equals("SELL"),
+            assertTrue(tp.getType() == TradingPoint.PointType.BUY || tp.getType() == TradingPoint.PointType.SELL,
                     "买卖点类型必须是BUY或SELL");
             assertNotNull(tp.getLevel(), "买卖点级别不能为空");
             assertTrue(tp.getLevel() >= 1 && tp.getLevel() <= 3,
@@ -90,9 +91,9 @@ class ChanCalculationEngineTest {
                     "买卖点价格必须大于0");
             assertTrue(tp.getTimestamp() > 0, "买卖点时间戳必须大于0");
             assertNotNull(tp.getConfidence(), "买卖点置信度不能为空");
-            assertTrue(tp.getConfidence().equals("HIGH") ||
-                      tp.getConfidence().equals("MEDIUM") ||
-                      tp.getConfidence().equals("LOW"),
+            assertTrue(tp.getConfidence() == TradingPoint.Confidence.HIGH ||
+                      tp.getConfidence() == TradingPoint.Confidence.MEDIUM ||
+                      tp.getConfidence() == TradingPoint.Confidence.LOW,
                     "买卖点置信度必须是HIGH/MEDIUM/LOW之一");
             assertNotNull(tp.getReason(), "买卖点原因不能为空");
             assertFalse(tp.getReason().isEmpty(), "买卖点原因不能为空字符串");

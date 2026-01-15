@@ -263,6 +263,7 @@ public class ChanController {
     }
 
     public record ChanResultLite(
+            List<MergedKlineLite> mergedKlines,
             List<FenxingLite> fenxings,
             List<BiLite> bis,
             List<XianduanLite> xianduans,
@@ -270,6 +271,9 @@ public class ChanController {
             List<TradingPointLite> tradingPoints) {
         public ChanResultLite(ChanCalculationEngine.ChanResultFull full) {
             this(
+                    full.mergedKlines().stream()
+                            .map(m -> new MergedKlineLite(m.getIndex(), m.getTimestamp()))
+                            .toList(),
                     full.fenxings().stream()
                             .map(f -> new FenxingLite(f.getCenterIndex(), f.getType().name(), f.getPrice())).toList(),
                     full.bis().stream()
@@ -289,6 +293,9 @@ public class ChanController {
                             t -> new TradingPointLite(t.getTimestamp(), t.getType().name(), t.getLevel(), t.getPrice()))
                             .toList());
         }
+    }
+
+    public record MergedKlineLite(int index, long timestamp) {
     }
 
     public record FenxingLite(int index, String type, java.math.BigDecimal price) {
