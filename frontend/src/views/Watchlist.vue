@@ -1,4 +1,21 @@
 <template>
+  <!--
+    ⚠️ PLACEHOLDER/EXAMPLE CODE - NOT PART OF PHASE 2 ⚠️
+
+    This page demonstrates UI patterns for watchlist management but does NOT implement
+    real Chan Theory signal generation. Current implementation uses price change
+    percentages as mock signals.
+
+    Phase 2 Scope: Chan calculation + chart visualization only
+    Phase 3 Scope: Real signal generation, watchlist alerts, multi-symbol monitoring
+
+    TODO Phase 3:
+    - Integrate with backend /api/chan/trading-points endpoint for real signals
+    - Replace mock signal generation with real Chan Theory signals
+    - Implement batch symbol monitoring and alert system
+    - Add watchlist group management and persistence
+    - Optimize API calls with batch ticker endpoint
+  -->
   <section class="card p-5 flex flex-col gap-4">
     <CardHeader :title="t('watchlist.title')" :subtitle="t('watchlist.subtitle')">
       <template #actions>

@@ -1,4 +1,19 @@
 <template>
+  <!--
+    ⚠️ NOTE: API Call Pattern - Placeholder Implementation ⚠️
+
+    Current implementation uses Promise.all with individual ticker API calls per symbol.
+    This is a PLACEHOLDER pattern for demonstration purposes.
+
+    Phase 2 Scope: Chan calculation + chart visualization only
+    Phase 3 Scope: Optimize with batch ticker endpoint, rate limiting, and aggregation
+
+    TODO Phase 3:
+    - Implement batch ticker API endpoint on backend
+    - Add rate limiting and request throttling
+    - Implement proper pagination and lazy loading
+    - Add WebSocket support for real-time updates
+  -->
   <section class="card p-5 flex flex-col gap-4">
     <CardHeader :title="t('markets.title')" :subtitle="t('markets.subtitle')">
       <template #actions>

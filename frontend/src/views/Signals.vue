@@ -1,4 +1,20 @@
 <template>
+  <!--
+    ⚠️ PLACEHOLDER/EXAMPLE CODE - NOT PART OF PHASE 2 ⚠️
+
+    This page demonstrates UI patterns for signal display but does NOT implement
+    real Chan Theory signal generation. Current implementation uses price change
+    percentages as mock signals.
+
+    Phase 2 Scope: Chan calculation + chart visualization only
+    Phase 3 Scope: Real signal generation, push notifications, alert system
+
+    TODO Phase 3:
+    - Integrate with backend /api/chan/trading-points endpoint
+    - Replace mock signal generation with real Chan Theory signals
+    - Implement signal push/notification system
+    - Add signal history and performance tracking
+  -->
   <section class="card p-5 flex flex-col gap-4">
     <CardHeader :title="t('signals.title')" :subtitle="t('signals.subtitle')">
       <template #actions>

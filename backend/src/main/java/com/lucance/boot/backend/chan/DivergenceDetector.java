@@ -64,8 +64,12 @@ public class DivergenceDetector {
         // 判断背驰
         if (xianduan1.getDirection() == MergedKline.Direction.UP) {
             // 上涨线段，检查顶背驰
-            // 条件: 价格新高但MACD面积减少
-            if (price2.compareTo(price1) > 0 && macd2Area.compareTo(macd1Area) < 0) {
+            // 条件: 价格新高但MACD面积减少，且成交量萎缩
+            boolean priceHigher = price2.compareTo(price1) > 0;
+            boolean macdWeaker = macd2Area.compareTo(macd1Area) < 0;
+            boolean volumeWeaker = volume2.compareTo(volume1) < 0;
+
+            if (priceHigher && macdWeaker && volumeWeaker) {
                 return buildDivergenceResult(
                         DivergenceResult.DivergenceType.BEARISH,
                         price1, price2,
@@ -75,8 +79,12 @@ public class DivergenceDetector {
             }
         } else {
             // 下跌线段，检查底背驰
-            // 条件: 价格新低但MACD面积减少
-            if (price2.compareTo(price1) < 0 && macd2Area.compareTo(macd1Area) < 0) {
+            // 条件: 价格新低但MACD面积减少，且成交量萎缩
+            boolean priceLower = price2.compareTo(price1) < 0;
+            boolean macdWeaker = macd2Area.compareTo(macd1Area) < 0;
+            boolean volumeWeaker = volume2.compareTo(volume1) < 0;
+
+            if (priceLower && macdWeaker && volumeWeaker) {
                 return buildDivergenceResult(
                         DivergenceResult.DivergenceType.BULLISH,
                         price1, price2,

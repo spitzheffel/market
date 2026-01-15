@@ -70,6 +70,76 @@ class ChanCalculationEngineTest {
     }
 
     @Test
+    @DisplayName("买卖点应包含完整的必要字段")
+    void testTradingPointsCompleteness() {
+        List<Kline> klines = createLargeTestKlines();
+
+        ChanCalculationEngine.ChanResultFull result = engine.calculateFull(klines);
+
+        // 如果有买卖点，验证其完整性
+        result.tradingPoints().forEach(tp -> {
+            assertNotNull(tp.getId(), "买卖点ID不能为空");
+            assertNotNull(tp.getType(), "买卖点类型不能为空");
+            assertTrue(tp.getType().equals("BUY") || tp.getType().equals("SELL"),
+                    "买卖点类型必须是BUY或SELL");
+            assertNotNull(tp.getLevel(), "买卖点级别不能为空");
+            assertTrue(tp.getLevel() >= 1 && tp.getLevel() <= 3,
+                    "买卖点级别应在1-3之间");
+            assertNotNull(tp.getPrice(), "买卖点价格不能为空");
+            assertTrue(tp.getPrice().compareTo(BigDecimal.ZERO) > 0,
+                    "买卖点价格必须大于0");
+            assertTrue(tp.getTimestamp() > 0, "买卖点时间戳必须大于0");
+            assertNotNull(tp.getConfidence(), "买卖点置信度不能为空");
+            assertTrue(tp.getConfidence().equals("HIGH") ||
+                      tp.getConfidence().equals("MEDIUM") ||
+                      tp.getConfidence().equals("LOW"),
+                    "买卖点置信度必须是HIGH/MEDIUM/LOW之一");
+            assertNotNull(tp.getReason(), "买卖点原因不能为空");
+            assertFalse(tp.getReason().isEmpty(), "买卖点原因不能为空字符串");
+        });
+    }
+
+    @Test
+    @DisplayName("买卖点应按时间顺序排列")
+    void testTradingPointsOrder() {
+        List<Kline> klines = createLargeTestKlines();
+
+        ChanCalculationEngine.ChanResultFull result = engine.calculateFull(klines);
+
+        var tradingPoints = result.tradingPoints();
+        for (int i = 0; i < tradingPoints.size() - 1; i++) {
+            assertTrue(tradingPoints.get(i).getTimestamp() <= tradingPoints.get(i + 1).getTimestamp(),
+                    "买卖点应按时间顺序排列");
+        }
+    }
+
+    @Test
+    @DisplayName("买卖点价格应在合理范围内")
+    void testTradingPointsPriceRange() {
+        List<Kline> klines = createLargeTestKlines();
+
+        ChanCalculationEngine.ChanResultFull result = engine.calculateFull(klines);
+
+        // 获取K线价格范围
+        BigDecimal minPrice = klines.stream()
+                .map(Kline::getLow)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+        BigDecimal maxPrice = klines.stream()
+                .map(Kline::getHigh)
+                .max(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+
+        // 验证买卖点价格在K线范围内
+        result.tradingPoints().forEach(tp -> {
+            assertTrue(tp.getPrice().compareTo(minPrice) >= 0,
+                    "买卖点价格不应低于K线最低价");
+            assertTrue(tp.getPrice().compareTo(maxPrice) <= 0,
+                    "买卖点价格不应高于K线最高价");
+        });
+    }
+
+    @Test
     @DisplayName("空K线列表应返回空结果")
     void testEmptyKlines() {
         List<Kline> klines = new ArrayList<>();
