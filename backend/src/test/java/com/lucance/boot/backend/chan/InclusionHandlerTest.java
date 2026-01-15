@@ -41,8 +41,9 @@ class InclusionHandlerTest {
         List<MergedKline> result = inclusionHandler.process(klines);
 
         assertEquals(1, result.size());
-        assertEquals(new BigDecimal("110"), result.get(0).getHigh());
-        assertEquals(new BigDecimal("95"), result.get(0).getLow());
+        // 使用compareTo比较BigDecimal避免scale问题
+        assertEquals(0, new BigDecimal("110").compareTo(result.get(0).getHigh()));
+        assertEquals(0, new BigDecimal("95").compareTo(result.get(0).getLow()));
     }
 
     @Test
@@ -75,8 +76,9 @@ class InclusionHandlerTest {
         // K2 和 K3 应合并
         assertEquals(2, result.size());
         // 上涨：取高高低低 -> H=max(120,118)=120, L=max(100,105)=105
-        assertEquals(new BigDecimal("120"), result.get(1).getHigh());
-        assertEquals(new BigDecimal("105"), result.get(1).getLow());
+        // 使用compareTo比较BigDecimal避免scale问题
+        assertEquals(0, new BigDecimal("120").compareTo(result.get(1).getHigh()));
+        assertEquals(0, new BigDecimal("105").compareTo(result.get(1).getLow()));
     }
 
     @Test

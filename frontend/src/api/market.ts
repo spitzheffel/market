@@ -210,6 +210,31 @@ export const klineApi = {
 }
 
 /**
+ * 市场目录 API
+ */
+export const marketCatalogApi = {
+  /**
+   * 获取可用交易对列表
+   */
+  async getSymbols(exchange: string = 'binance'): Promise<string[]> {
+    const response = await apiClient.get('/api/markets/symbols', {
+      params: { exchange }
+    })
+    return response.data
+  },
+
+  /**
+   * 获取交易对信息
+   */
+  async getSymbolInfo(symbol: string, exchange: string = 'binance'): Promise<any> {
+    const response = await apiClient.get('/api/markets/symbol-info', {
+      params: { symbol, exchange }
+    })
+    return response.data
+  }
+}
+
+/**
  * 缠论计算 API
  */
 export const chanApi = {
@@ -240,6 +265,23 @@ export const chanApi = {
     exchange?: string
   }): Promise<ChanAnalysisResponseFull> {
     const response = await apiClient.get('/api/chan/analysis', { params })
+    return response.data
+  },
+
+  /**
+   * 轻量分析（减少网络负载，只包含渲染必要字段）
+   */
+  async getAnalysisLite(params: {
+    symbol: string
+    interval: string
+    startTime?: number
+    endTime?: number
+    limit?: number
+    exchange?: string
+  }): Promise<any> {
+    const response = await apiClient.get('/api/chan/analysis', {
+      params: { ...params, lite: true }
+    })
     return response.data
   },
 

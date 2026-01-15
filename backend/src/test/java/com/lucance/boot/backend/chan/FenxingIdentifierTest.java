@@ -127,7 +127,8 @@ class FenxingIdentifierTest {
         List<Fenxing> result = fenxingIdentifier.identify(klines);
 
         assertEquals(1, result.size());
-        assertEquals(new BigDecimal("110"), result.get(0).getPrice());
+        // 使用compareTo比较BigDecimal避免scale问题
+        assertEquals(0, new BigDecimal("110").compareTo(result.get(0).getPrice()));
     }
 
     // 辅助方法：创建测试用的 MergedKline

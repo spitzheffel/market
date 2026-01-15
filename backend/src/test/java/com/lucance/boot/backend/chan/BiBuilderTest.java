@@ -52,8 +52,9 @@ class BiBuilderTest {
 
         assertEquals(1, result.size());
         assertEquals(MergedKline.Direction.UP, result.get(0).getDirection());
-        assertEquals(new BigDecimal("90"), result.get(0).getStartPrice());
-        assertEquals(new BigDecimal("120"), result.get(0).getEndPrice());
+        // 使用compareTo比较BigDecimal避免scale问题
+        assertEquals(0, new BigDecimal("90").compareTo(result.get(0).getStartPrice()));
+        assertEquals(0, new BigDecimal("120").compareTo(result.get(0).getEndPrice()));
     }
 
     @Test

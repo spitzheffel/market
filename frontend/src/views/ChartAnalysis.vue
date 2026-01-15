@@ -309,7 +309,8 @@ const fetchChartData = async () => {
   chartError.value = '';
 
   try {
-    const analysis = await chanApi.getAnalysisFull({
+    // 使用lite模式减少网络负载
+    const analysis = await chanApi.getAnalysisLite({
       symbol: selectedSymbol.value,
       interval: selectedInterval.value,
       limit: 200,
